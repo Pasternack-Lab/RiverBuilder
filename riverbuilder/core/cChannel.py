@@ -237,7 +237,7 @@ class Channel(Pipe):
             CF_b = getattr(self, 'CF_b', 0)
             CF_c = getattr(self, 'CF_c', 0.25)
 
-            y, z = self.cfXShape(wbf,n=self.xshapePoints, CF_a=CF_a, CF_b=CF_b, CF_c=CF_c)
+            y, z = self.cfXShape(wbf, n=self.xshapePoints, CF_a=CF_a, CF_b=CF_b, CF_c=CF_c)
             z = z + midInd * self.getPipeSlope()
 
             # shape connects with banks
@@ -259,15 +259,18 @@ class Channel(Pipe):
             fig, ax = plt.subplots(1, 1)
             fig.suptitle('PY X-Shape (Wavy U)')
 
-            # Generate PY shape
-            y, z = self.pyXShape(wbf)
+            # Generate the raw PY shape (local y & z)
+            y_local, z_local = self.pyXShape(wbf)
 
-            # ensuring the shape connects with banks
-            y, z = self.addBankPoints(y, z, midInd)
+            # Connect to banks
+            y_banks, z_banks = self.addBankPoints(y_local, z_local, midInd)
 
-            # Scale by dx
-            y = y * self.dx
-            z = z * self.dx
+            # Scale to real‐world units
+            y = y_banks * self.dx
+            z = z_banks * self.dx
+
+            #Enforce minimum elevation of 1000
+            # z = np.maximum(z, 1000)
 
             ax.plot(y, z, 'k-o', label=f'PY shape @ station {midInd}')
             ax.set_xlabel('Y')
@@ -279,21 +282,45 @@ class Channel(Pipe):
         if ctype == 'AF':
             fig, ax = plt.subplots(1, 1)
             fig.suptitle('AF X-Shape (Angled Flat)')
-            
-            d1 = getattr(self, 'af_d1', 5)
-            d2 = getattr(self, 'af_d2', 5)
+            d1   = getattr(self, 'af_d1', 5)
+            d2   = getattr(self, 'af_d2', 5)
             ang1 = getattr(self, 'af_ang1', 55)
             ang2 = getattr(self, 'af_ang2', 55)
 
-            # Using stored depth/angle parameters; if not, afXShape uses its defaults.
-            y, z = self.afXShape(wbf, n=self.xshapePoints, d1=d1, d2=d2, ang1=ang1, ang2=ang2)
-            
-            # For AF, since the profile is already fixed-up, we may not want to add extra bank points.
-            # TODO: Check this
-            # y, z = self.addBankPoints(y, z, midInd)
+            # Determine hbf and thalweg at midInd if available
+            hbf = getattr(self, 'hbf', 0.0)
+            thalweg = self.levels_n.get('thalweg', [0.0] * len(self.x_v))[midInd]
 
-            y = y * self.dx
-            z = z * self.dx
+            ang1_rad = np.deg2rad(ang1)
+            ang2_rad = np.deg2rad(ang2)
+
+            w_slope1 = d1 / np.tan(ang1_rad)
+            w_slope2 = d2 / np.tan(ang2_rad)
+
+            flat_width = wbf - (w_slope1 + w_slope2)
+            if flat_width < 0:
+                total_run = w_slope1 + w_slope2
+                w_slope1 = (w_slope1 / total_run) * wbf
+                w_slope2 = (w_slope2 / total_run) * wbf
+                flat_width = 0.0
+
+            # Build y_vals from –wbf/2 to +wbf/2
+            n = self.xshapePoints
+            y_vals = np.linspace(-wbf / 2.0, wbf / 2.0, n)
+
+            y_local, z_local = self.afXShape(
+                wbf,
+                n=self.xshapePoints,
+                d1=d1, d2=d2,
+                ang1=ang1, ang2=ang2
+            )
+
+            # Adding the longitudinal elevation at midInd
+            z_elev = z_local + midInd * self.getPipeSlope()
+
+            # Scaling into real-world units
+            y = y_local * self.dx
+            z = z_elev * self.dx
 
             ax.plot(y, z, 'b-o', label=f'AF shape @ station {midInd}')
             ax.set_xlabel('Y')
@@ -1303,83 +1330,125 @@ class Channel(Pipe):
 
     def pyXShape(self, wbf, hbf=None, thalweg=None, A=10.0, B=3.0, freq=2):
         """
-        'wavy U–shape' cross–section based on:
-            z = A*(1 - x^2) + B*sin(2*pi*freq*x),
-        where, x -> [-1, 1]
-        y is mapped to [-wbf/2, wbf/2]. 
+        'wavy U–shaped' cross–section based on:
+            z_raw = A*(1 - x^2) + B*sin(2*pi*freq*x),  x -> [-1, 1]
+        y is mapped to [-wbf/2, wbf/2].
         """
         # If hbf or thalweg are not provided, compute them at the mid–station:
         if hbf is None or thalweg is None:
             midInd = len(self.x_v) // 2
             xVal = np.round(self.x_v[midInd])
             lbx = self.levels_x['left'][0]
-            lb = self.levels_z['left'][0]
+            lbz = self.levels_z['left'][0]
             rbx = self.levels_x['right'][0]
-            rb = self.levels_z['right'][0]
+            rbz = self.levels_z['right'][0]
+
             lb_ind = np.where(lbx == xVal)[0]
             if len(lb_ind) == 0:
-                bankH = rb[np.where(rbx == xVal)[0][0]]
+                bankH = rbz[np.where(rbx == xVal)[0][0]]
             else:
-                bankH = lb[lb_ind[0]]
+                bankH = lbz[lb_ind[0]]
+
             hbf = bankH - self.thalweg[midInd]
             thalweg = self.thalweg[midInd]
-        
+
+
         n = self.xshapePoints
+        x_unit = np.linspace(-1, 1, n)
+        y_vals = x_unit * (wbf / 2.0)
 
-        x_vals = np.linspace(-1, 1, n)
-        y_vals = x_vals * (wbf / 2.0)
+        # 3 raw “wavy U” shape
+        z_raw = A * (1 - x_unit**2) + B * np.sin(2 * np.pi * freq * x_unit)
 
-        z_raw = A * (1 - x_vals**2) + B * np.sin(2 * np.pi * freq * x_vals)
+        # raw min/max
+        z_min = z_raw.min()
+        z_max = z_raw.max()
 
-        z_min = np.min(z_raw)
-        z_max = np.max(z_raw)
-    
-        z_vals = thalweg + hbf * (1 - (z_raw - z_min) / (z_max - z_min))
-    
+        # Linearly map so that:
+        #      z_raw == z_max -> elevation == thalweg
+        #      z_raw == z_min -> elevation == thalweg + hbf
+        z_vals = thalweg + hbf * ((z_max - z_raw) / (z_max - z_min))
+
+        # Clamp so z_vals never drops below elevation
+        z_vals = np.maximum(z_vals, 1000)
+
         return y_vals, z_vals
 
     def afXShape(self, wbf, n=21, hbf=None, thalweg=None, d1=None, d2=None, ang1=None, ang2=None):
+
         midInd = len(self.x_v) // 2
         if thalweg is None:
             thalweg = self.getThalweg()[midInd]
 
-        # user‐provided or defaults
-        d1 = float(d1) if d1 is not None else 5
-        d2 = float(d2) if d2 is not None else 5
+        # Use provided values or defaults
+        d1 = float(d1) if d1 is not None else 5.0
+        d2 = float(d2) if d2 is not None else 5.0
         ang1 = math.radians(float(ang1)) if ang1 is not None else math.radians(55)
         ang2 = math.radians(float(ang2)) if ang2 is not None else math.radians(55)
 
-        # horizontal runs for each bank
-        w1 = d1 / math.tan(ang1) if math.tan(ang1) != 0 else 0
-        w2 = d2 / math.tan(ang2) if math.tan(ang2) != 0 else 0
+        # Determining the deepre side
+        flip = True
+        if d1 < d2:
+            # Right side is deeper- no swap
+            dd1, dd2 = d1, d2
+            a1, a2 = ang1, ang2
+        else:
+            # Left side is deeper - swap
+            flip = False
+            dd1, dd2 = d2, d1
+            a1, a2 = ang2, ang1
 
-        # local x from -wbf/2 .. +wbf/2
-        leftBank, rightBank = -wbf/2.0, wbf/2.0
-        leftEnd  = leftBank + w1
-        rightStart = rightBank - w2
+        max_depth = dd2
+        top_max = thalweg + max_depth
+        crest_shallow = thalweg + dd1
 
-        # crest elevation
-        top = thalweg + d1
+        run_shallow_tier = (max_depth - dd1) / math.tan(a1) if (max_depth - dd1) and math.tan(a1) != 0 else 0.0
+        run_shallow_bottom = dd1 / math.tan(a1) if math.tan(a1) != 0 else 0.0
+        run_shallow_total = run_shallow_tier + run_shallow_bottom
+
+        run_deep_total = max_depth / math.tan(a2) if math.tan(a2) != 0 else 0.0
+
+        leftBank, rightBank = -wbf / 2.0, +wbf / 2.0
+
+        # Breakpoints:
+        shallow_tier_end = leftBank + run_shallow_tier
+        shallow_slope_end = leftBank + run_shallow_total
+        deep_slope_start = rightBank - run_deep_total
 
         x_vals = np.linspace(leftBank, rightBank, n)
         z_vals = np.empty_like(x_vals)
 
         for i, x in enumerate(x_vals):
-            if x <= leftEnd:
-                # left slope down to bed
-                t = (x - leftBank) / w1 if w1 else 0
-                z_vals[i] = top + t*(thalweg - top)
-            elif x >= rightStart:
-                # right slope down to bed
-                t = (rightBank - x) / w2 if w2 else 0
-                z_vals[i] = top + t*(thalweg - top)
+            if x <= shallow_tier_end:
+                #
+                if run_shallow_tier > 0:
+                    t = (x - leftBank) / run_shallow_tier
+                    z_vals[i] = top_max + t * (crest_shallow - top_max)
+                else:
+                    z_vals[i] = top_max
+            elif x <= shallow_slope_end:
+                if run_shallow_bottom > 0:
+                    t = (x - shallow_tier_end) / run_shallow_bottom
+                    z_vals[i] = crest_shallow + t * (thalweg - crest_shallow)
+                else:
+                    z_vals[i] = crest_shallow
+            elif x >= deep_slope_start:
+                if run_deep_total > 0:
+                    t = (rightBank - x) / run_deep_total
+                    z_vals[i] = top_max + t * (thalweg - top_max)
+                else:
+                    z_vals[i] = top_max
             else:
-                # flat bed
+
                 z_vals[i] = thalweg
 
-        # ensure the very edges hit the crest exactly
-        z_vals[0]  = top
-        z_vals[-1] = top
+
+        z_vals[0] = top_max
+        z_vals[-1] = top_max
+
+        if flip:
+            x_vals = -x_vals[::-1]
+            z_vals = z_vals[::-1]
 
         return x_vals, z_vals
 
@@ -1418,9 +1487,12 @@ class Channel(Pipe):
         z_max = np.max(z_raw)
         z_vals = thalweg + hbf * (1 - (z_raw - z_min) / (z_max - z_min))
         
+        # Clamp so z_vals never drops below elevation
+        z_vals = np.maximum(z_vals, 1000)
+        
         return y_vals, z_vals
 
-    def tuXShape(self, wbf, hbf=None, thalweg=None, A=10.0, B=2.0, C=4.0, sigma=0.2):
+    def tuXShape(self, wbf, hbf=None, thalweg=None, A=10.0, B=2, C=4.0, sigma=0.2):
         """
         Returns (y, z) arrays for a 'TU' (Triple U) cross–section.
         
@@ -1454,6 +1526,9 @@ class Channel(Pipe):
         z_min = np.min(z_raw)
         z_max = np.max(z_raw)
         z_vals = thalweg + hbf * (1 - (z_raw - z_min) / (z_max - z_min))
+    
+        # Clamp so z_vals never drops below elevation
+        z_vals = np.maximum(z_vals, 1000)
 
         return y_vals, z_vals
 

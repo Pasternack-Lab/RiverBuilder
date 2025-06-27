@@ -6,3 +6,24 @@ rplot.R~
 rb_run.py
 .idea/RiverBuilder.iml
 .idea/misc.xml
+
+# ----- Virtual Environment ----- #
+venv
+venv/
+
+# ----- Files related to ArcGIS Pro ----- #
+*.gdb
+*.adf
+*.xml
+*.aprx
+*.tbx
+*.cfs
+*.dat
+*.nit
+*.dir
+*.ovr
+*.gen
+*.del
+
+# ----- Automation ----- #
+launch.json

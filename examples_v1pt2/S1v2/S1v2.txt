@@ -103,11 +103,22 @@ Median Sediment Size (D50)=0
 
 # Rectangle: n = Channel XS Points 
 
-Cross-Sectional Shape=SU
+Cross-Sectional Shape=AF
 
 # Channel XS Points=21
 
 # TZ(n)=21
+
+
+Depth1=10
+Depth2=10
+Angle1=30
+Angle2=40
+
+CF_a=1
+CF_b=0
+# 0 - 20
+CF_c=10
 
 ################################
 

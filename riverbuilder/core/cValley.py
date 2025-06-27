@@ -208,6 +208,7 @@ class Valley(Pipe):
             channel_z = channel_z[::-1]
 
         elif ctype == 'AF':
+            # 1) Building the raw AF profile (local y & z)
             d1   = getattr(self.channel, 'af_d1', 5)
             d2   = getattr(self.channel, 'af_d2', 5)
             ang1 = getattr(self.channel, 'af_ang1', 55)
@@ -217,8 +218,31 @@ class Valley(Pipe):
                 n=self.channel.xshapePoints,
                 d1=d1, d2=d2, ang1=ang1, ang2=ang2
             )
+            # 2) Reversing so that left‐bank end comes first
             channel_y = channel_y[::-1]
             channel_z = channel_z[::-1]
+
+            # Shift the AF‐end so it exactly meets the inner‐bank elevation
+            actual_left_raw = self.channel.levels_z['left'][0][indLeft]
+            #    The AF‐profile’s first point (channel_z[0]) is top_max; compute delta:
+            delta = actual_left_raw - channel_z[0]
+            #    Shift *all* AF Zs by that delta:
+            channel_z = channel_z + delta
+
+            # 3) Applying the center‐offset and scale to real units
+            centerOffset = (
+                self.channel.levels_y['left'][0][indLeft]
+            + self.channel.levels_y['right'][0][indRight]
+            ) / 2.0
+            channel_y = (channel_y + centerOffset) * self.dx
+            channel_z = channel_z * self.dx
+
+            # 4) Append to the valley traces as previous
+            y += channel_y.tolist()
+            z += channel_z.tolist()
+
+            y.append(np.nan)
+            z.append(np.nan)
 
         elif ctype == 'DT':
             channel_y, channel_z = self.channel.dtXShape(wbf)

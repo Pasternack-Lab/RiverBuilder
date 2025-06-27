@@ -220,7 +220,7 @@ class Pipe:
 
         return self.x_slope * delta_x_v / delta_s_v
 
-
+    # TODO: VALLEY CALC
     def getPipeSlope(self):
         '''Return pipe slope'''
         s_center = self.getCenterline_sn()
