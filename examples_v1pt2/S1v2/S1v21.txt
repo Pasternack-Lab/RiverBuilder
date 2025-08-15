@@ -1,0 +1,60 @@
+# DOMAIN PARAMETERS
+
+Datum=1000
+Length=420
+
+X Resolution=1
+
+
+Valley Slope (Sv)=0.002
+
+Critical Shields Stress (t*50)=0
+
+# CHANNEL PARAMETERS
+
+Inner Channel Lateral Offset Minimum=30
+Inner Channel Depth Minimum=2.11
+Median Sediment Size=0
+
+# CROSS SECTIONAL SHAPE
+
+Cross-Sectional Shape=CF
+
+Meandering Centerline Function=SIN1
+
+Smooth=0
+
+Left Inner Bank Function=SIN1
+Right Inner Bank Function=SIN1
+
+Valley Centerline Function=SIN1
+
+
+#Left Valley
+L1 Valley Level Lateral Offset Minimum=25
+L1 Valley Level Height Offset=10
+L1 Valley Level Function=SIN1
+
+L2 Valley Level Lateral Offset Minimum=25
+L2 Valley Level Height Offset=10
+L2 Valley Level Function=SIN1
+
+
+# Right Valley
+R1 Valley Level Lateral Offset Minimum=25
+R1 Valley Level Height Offset=10
+R1 Valley Level Function=SIN1
+
+R2 Valley Level Lateral Offset Minimum=25
+R2 Valley Level Height Offset=10
+R2 Valley Level Function=SIN1
+
+
+Left Valley Boundary Lateral Offset Minimum=10
+Left Valley Boundary Height Offset=20
+
+# Right Valley Boundary Properties
+Right Valley Boundary Lateral Offset Minimum=10
+Right Valley Boundary Height Offset=20
+
+

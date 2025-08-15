@@ -209,66 +209,183 @@ class Channel(Pipe):
 
 
     def getXShapePlot(self):
-        '''return matplotlib plot object that contains X-Shape plots of the river Channel.'''
+        """
+        Return a matplotlib plot object showing the X-Shape of the channel.
+        Includes SU, AU, CF, PY, AF, DT (Deep Thalweg), and TU (Triple U) cross-sections.
+        """
+
+        #Cross-section type and a mid station idx
+        ctype = getattr(self, 'cross_section_type', None)
+        midInd = len(self.x_v) // 2
+
+        # base inner width at midInd
+        wbf = abs(self.levels_n["left"][0][midInd]) + abs(self.levels_n["right"][0][midInd])
+
+        # CF Cross-Section
+        if ctype == 'CF':
+            fig, ax = plt.subplots(1, 1)
+            fig.suptitle('CF X-Shape for Channel')
+
+            CF_a = getattr(self, 'CF_a', 1)
+            CF_b = getattr(self, 'CF_b', 0)
+            CF_c = getattr(self, 'CF_c', 0.25)
+
+            y, z = self.cfXShape(wbf, n=self.xshapePoints, CF_a=CF_a, CF_b=CF_b, CF_c=CF_c)
+            # add longitudinal slope at midInd
+            z = z + midInd * self.getPipeSlope()
+
+            # connect to banks -> then scale to real units
+            y, z = self.addBankPoints(y, z, midInd)
+            y = y * self.dx
+            z = z * self.dx
+
+            ax.plot(y, z, 'k-o', label=f'CF @ station {midInd}')
+            ax.set_xlabel('Y')
+            ax.set_ylabel('Z')
+            ax.legend()
+            return fig
+
+        # PY Cross-Section
+        if ctype == 'PY':
+            fig, ax = plt.subplots(1, 1)
+            fig.suptitle('PY X-Shape (Wavy U)')
+
+            y_local, z_local = self.pyXShape(wbf)
+
+            y_b, z_b = self.addBankPoints(y_local, z_local, midInd)
+            y = y_b * self.dx
+            z = z_b * self.dx
+
+            ax.plot(y, z, 'k-o', label=f'PY @ station {midInd}')
+            ax.set_xlabel('Y')
+            ax.set_ylabel('Z')
+            ax.legend()
+            return fig
+
+        #AF Cross-Section (Angled Flat)
+        if ctype == 'AF':
+            fig, ax = plt.subplots(1, 1)
+            fig.suptitle('AF X-Shape (Angled Flat)')
+
+            d1   = getattr(self, 'af_d1', 5)
+            d2   = getattr(self, 'af_d2', 5)
+            ang1 = getattr(self, 'af_ang1', 55)
+            ang2 = getattr(self, 'af_ang2', 55)
+
+            # ;ocal AF shape (centered in [-wbf/2, +wbf/2])
+            y_local, z_local = self.afXShape(
+                wbf,
+                n=self.xshapePoints,
+                d1=d1, d2=d2, ang1=ang1, ang2=ang2
+            )
+
+            z_local = z_local + midInd * self.getPipeSlope()
+
+            y_b, z_b = self.addBankPoints(y_local, z_local, midInd)
+            y = y_b * self.dx
+            z = z_b * self.dx
+
+            ax.plot(y, z, 'b-o', label=f'AF @ station {midInd}')
+            ax.set_xlabel('Y')
+            ax.set_ylabel('Z')
+            ax.legend()
+            return fig
+
+        # DT Cross-Section (Deep Thalweg)
+        if ctype == 'DT':
+            fig, ax = plt.subplots(1, 1)
+            fig.suptitle('DT X-Shape (Deep Thalweg)')
+
+            y, z = self.dtXShape(wbf)
+
+            y, z = self.addBankPoints(y, z, midInd)
+            y = y * self.dx
+            z = z * self.dx
+
+            ax.plot(y, z, 'm-o', label=f'DT @ station {midInd}')
+            ax.set_xlabel('Y')
+            ax.set_ylabel('Z')
+            ax.legend()
+            return fig
+        # TU Cross-Section (Triple U)
+        if ctype == 'TU':
+            fig, ax = plt.subplots(1, 1)
+            fig.suptitle('TU X-Shape (Triple U)')
+
+            y, z = self.tuXShape(wbf)
+
+            y = y[::-1]
+            z = z[::-1]
+
+            y, z = self.addBankPoints(y, z, midInd)
+            y = y * self.dx
+            z = z * self.dx
+
+            ax.plot(y, z, 'c-o', label=f'TU @ station {midInd}')
+            ax.set_xlabel('Y')
+            ax.set_ylabel('Z')
+            ax.legend()
+            return fig
+
+        # Default AU/SU Cross-Sections
         cur_v = self.getDynamicCurv()
         maxCur = np.amax(cur_v)
         minCur = np.amin(cur_v)
 
-        # If no curvature at all, plot at middle point
         if maxCur == minCur or self.tz != -1:
             fig, ax = plt.subplots(1, 1)
             fig.suptitle('X-Shape for Channel')
-            midInd = floor(len(self.x_v)/2)
-            wbf = abs(self.levels_n["left"][0][midInd]) + abs(self.levels_n["right"][0][midInd])
+
+            mid = floor(len(self.x_v) / 2)
+            wbf = abs(self.levels_n["left"][0][mid]) + abs(self.levels_n["right"][0][mid])
+
             if self.tz == -1:
-                y, z = self.pointXShape(midInd, maxCur, wbf, self.xshapePoints)
+                y, z = self.pointXShape(mid, maxCur, wbf, self.xshapePoints)
             else:
-                y, z = self.suXShape(midInd, wbf, self.tz, self.xshapePoints)
-            z = z + midInd*self.x_slope
-            y, z = self.addBankPoints(y, z, midInd)
+                y, z = self.suXShape(mid, wbf, self.tz, self.xshapePoints)
 
-            y = y*self.dx
-            z = z*self.dx
+            z = z + mid * self.x_slope
 
-            ax.plot(y, z, 'k-', marker='o', label='x = '+str(midInd))
-            plt.xlabel('Y (related to center of channel)')
-            plt.ylabel('Z')
-            plt.legend()
+            y, z = self.addBankPoints(y, z, mid)
+            y = y * self.dx
+            z = z * self.dx
+
+            ax.plot(y, z, 'k-o', label=f'x = {mid}')
+            ax.set_xlabel('Y (related to center of channel)')
+            ax.set_ylabel('Z')
+            ax.legend()
             return fig
-        else:
-            abs_cur_v = np.absolute(cur_v)
-            fig, ax = plt.subplots(2, 1, sharex=True)
-            fig.suptitle('Max Curvature X-Shape vs. Zero Curvature X-Shape')
 
-            plt.subplot(212)
-            indMax = np.argmax(abs_cur_v)
-            maxCur = cur_v[indMax]
-            wbf = abs(self.levels_n["left"][0][indMax]) + abs(self.levels_n["right"][0][indMax])
-            y, z = self.pointXShape(indMax, maxCur, wbf, self.xshapePoints)
-            si = self.getCenterline_sn()[indMax]
-            z = z + si*self.getPipeSlope()
-            y, z = self.addBankPoints(y, z, indMax)
-            plt.plot(y, z, 'k-', marker='o', label='Max Curvature:\nx = '+str(indMax))
-            plt.xlabel('Y (related to center of channel)')
-            plt.ylabel('Z')
-            plt.legend()
+        abs_cur_v = np.abs(cur_v)
+        fig, ax = plt.subplots(2, 1, sharex=True)
+        fig.suptitle('Max Curvature X-Shape vs. Zero Curvature X-Shape')
 
-            plt.subplot(211)
-            indMin = np.argmin(abs_cur_v)
-            minCur = cur_v[indMin]
-            wbf = abs(self.levels_n["left"][0][indMin]) + abs(self.levels_n["right"][0][indMin])
-            y, z = self.pointXShape(indMin, maxCur, wbf, self.xshapePoints)
-            si = self.getCenterline_sn()[indMin]
-            z = z + si*self.getPipeSlope()
-            y, z = self.addBankPoints(y, z, indMin)
+        # Subplot1: max curvature
+        plt.subplot(212)
+        indMax = np.argmax(abs_cur_v)
+        wbf = abs(self.levels_n["left"][0][indMax]) + abs(self.levels_n["right"][0][indMax])
+        y, z = self.pointXShape(indMax, maxCur, wbf, self.xshapePoints)
+        si = self.getCenterline_sn()[indMax]
+        z = z + si * self.getPipeSlope()
+        y, z = self.addBankPoints(y, z, indMax)
+        plt.plot(y * self.dx, z * self.dx, 'k-o', label=f'Max Curv: x={indMax}')
+        plt.xlabel('Y (related to center of channel)')
+        plt.ylabel('Z')
+        plt.legend()
 
-            y = y*self.dx
-            z = z*self.dx
+        # subplot #2: min curvature
+        plt.subplot(211)
+        indMin = np.argmin(abs_cur_v)
+        wbf = abs(self.levels_n["left"][0][indMin]) + abs(self.levels_n["right"][0][indMin])
+        y, z = self.pointXShape(indMin, minCur, wbf, self.xshapePoints)
+        si = self.getCenterline_sn()[indMin]
+        z = z + si * self.getPipeSlope()
+        y, z = self.addBankPoints(y, z, indMin)
+        plt.plot(y * self.dx, z * self.dx, 'k-o', label=f'Min Curv: x={indMin}')
+        plt.ylabel('Z')
+        plt.legend()
 
-            plt.plot(y, z, 'k-', marker='o', label='Min Curvature:\nx = '+str(indMin))
-            plt.ylabel('Z')
-            plt.legend()
-            return fig
+        return fig
 
 
     def setXShape(self, n=-1):
@@ -575,49 +692,53 @@ class Channel(Pipe):
 
 
     def pointXShape(self, ind, maxCur, wbf, n):
-        '''Return y values and z values of XSection of given x
-
-        n -- number of points to calculate XSection
-        '''
-        cur = self.getDynamicCurv()[ind]
+        """Return y values and z values of X‐Section at station ind."""
+        cur        = self.getDynamicCurv()[ind]
         pipe_slope = self.getPipeSlope()
-        si = self.getCenterline_sn()[ind]
-        xVal = np.round(self.x_v[ind])
+        si         = self.getCenterline_sn()[ind]
+        xVal       = np.round(self.x_v[ind])
 
         if maxCur == 0:
-            B = 1/2
+            B = 0.5
         else:
-            B = 1/2 * (1 - abs(cur/maxCur))
+            B = 0.5 * (1 - abs(cur / maxCur))
+        B = max(B, 0.1)
+        L = 1 if B == 1 else -log(2) / log(B)
 
-        if B < 0.1:
-            B = 0.1
+        lbx = self.levels_x ['left'][0]
+        lb  = self.levels_z ['left'][0]
+        rbx = self.levels_x ['right'][0]
+        rb  = self.levels_z ['right'][0]
 
-        if B == 1:
-            L = 1
+        if lbx.size > 0:
+            iL = np.argmin(np.abs(lbx - xVal))
+            dL = abs(lbx[iL] - xVal)
         else:
-            L = -1*log(2)/log(B)
+            dL = np.inf
 
-        lbx = self.levels_x['left'][0]
-        lb = self.levels_z['left'][0]
-        rbx = self.levels_x['right'][0]
-        rb = self.levels_z['right'][0]
-        lb_ind = np.where(lbx == xVal)[0]
-        if len(lb_ind) == 0:
-            bankH = rb[np.where(rbx == xVal)[0][0]]
+        if rbx.size > 0:
+            iR = np.argmin(np.abs(rbx - xVal))
+            dR = abs(rbx[iR] - xVal)
         else:
-            bankH = lb[lb_ind[0]]
-        hbf = bankH - self.thalweg[ind]
+            dR = np.inf
 
-        n_y = np.array([-wbf*x/(n+1) + (1/2)*wbf  for x in range(1, n+1)])
-        Y = (wbf/2-n_y) / wbf
+        if dL == np.inf and dR == np.inf:
+            raise RuntimeError(f"Error:No bank data to locate station {xVal}")
+        bankH = lb[iL] if dL <= dR else rb[iR]
+        hbf   = bankH - self.thalweg[ind]
+
+        n_y = np.array([(-wbf * x/(n+1) + 0.5*wbf) for x in range(1, n+1)])
+        Y   = (wbf/2 - n_y) / wbf
 
         if cur <= 0:
-            n_z = 4 * hbf * (Y**L) * (1-Y**L)
+            n_z = 4 * hbf * (Y**L) * (1 - Y**L)
         else:
-            n_z = 4 * hbf * ((1-Y)**L) * (1-(1-Y)**L)
+            n_z = 4 * hbf * ((1 - Y)**L) * (1 - (1 - Y)**L)
+
 
         n_z = self.thalweg[ind] + hbf - n_z
         return n_y, n_z
+
 
 
     def suXShape(self, ind, wbf, tzn, n):
@@ -656,33 +777,340 @@ class Channel(Pipe):
         n_z = self.thalweg[ind] + hbf - n_z
         return n_y, np.array(n_z)
 
+    def cfXShape(self, wbf, n=21, hbf=None, thalweg=None, CF_a=None, CF_b=None, CF_c=None):
+        """
+        The profile is designed so that:
+        -> at the center (y=0): elevation = thalweg (lowest point)
+        -> at the banks (y = ±wbf/2): elevation = thalweg + hbf (bank level)
+        
+        The equation used is:
+            profile = (a * |x_norm - b|)^c,
+        
+        where x_norm  (normalised - 0 at center, 1 at bank).
+        raw profile is then normalized to [0,1] and mapped to elevations.
+        """
+
+        # If hbf or thalweg are not provided, compute them at the mid-station.
+        if hbf is None or thalweg is None:
+            midInd = len(self.x_v) // 2
+            xVal = np.round(self.x_v[midInd])
+            lbx = self.levels_x['left'][0]
+            lb = self.levels_z['left'][0]
+            rbx = self.levels_x['right'][0]
+            rb = self.levels_z['right'][0]
+            lb_ind = np.where(lbx == xVal)[0]
+            if len(lb_ind) == 0:
+                bankH = rb[np.where(rbx == xVal)[0][0]]
+            else:
+                bankH = lb[lb_ind[0]]
+            hbf = bankH - self.thalweg[midInd]
+            thalweg = self.thalweg[midInd]
+
+        y_temp = np.linspace(-wbf/2, wbf/2, self.xshapePoints)
+        
+        x_norm = np.abs(y_temp) / (wbf/2.0)
+        
+        # parameters for the profile equation.
+        # a = 1.0   # scaling factor (adjust to change amplitude)
+        # b = 0   # shift: if b=0.5, deepest is near the center; if b differs, it shifts the curve.
+        # c = 0.25   # exponent: controls curvature (convex/concave)
+
+        # Use user-provided values (or defaults)
+        CF_a = float(CF_a) if CF_a is not None else 1
+        CF_b = float(CF_b) if CF_b is not None else 0
+        CF_c = float(CF_c) if CF_c is not None else 0.25
+
+        # Compute raw profile using the equation: (a * |x_norm - b|)^c
+        profile_raw = (CF_a * np.abs(x_norm - CF_b))**CF_c
+
+        # Normalize the raw profile so that it spans from 0 to 1.
+        # Note: Depending on a, b, c, the raw profile's min and max can be adjusted.
+        p_min = np.min(profile_raw)
+        p_max = np.max(profile_raw)
+        normalized_profile = (profile_raw - p_min) / (p_max - p_min)
+
+        z_temp = thalweg + hbf * normalized_profile
+        print(f"Calling cfx with {CF_a} {CF_b} {CF_c}")
+        return y_temp, z_temp
+
+    def pyXShape(self, wbf, hbf=None, thalweg=None, A=10.0, B=3.0, freq=2):
+        """
+        'wavy U–shaped' cross–section based on:
+            z_raw = A*(1 - x^2) + B*sin(2*pi*freq*x),  x -> [-1, 1]
+        y is mapped to [-wbf/2, wbf/2].
+        """
+        # If hbf or thalweg are not provided, compute them at the mid–station:
+        if hbf is None or thalweg is None:
+            midInd = len(self.x_v) // 2
+            xVal = np.round(self.x_v[midInd])
+            lbx = self.levels_x['left'][0]
+            lbz = self.levels_z['left'][0]
+            rbx = self.levels_x['right'][0]
+            rbz = self.levels_z['right'][0]
+
+            lb_ind = np.where(lbx == xVal)[0]
+            if len(lb_ind) == 0:
+                bankH = rbz[np.where(rbx == xVal)[0][0]]
+            else:
+                bankH = lbz[lb_ind[0]]
+
+            hbf = bankH - self.thalweg[midInd]
+            thalweg = self.thalweg[midInd]
+
+
+        n = self.xshapePoints
+        x_unit = np.linspace(-1, 1, n)
+        y_vals = x_unit * (wbf / 2.0)
+
+        # 3 raw “wavy U” shape
+        z_raw = A * (1 - x_unit**2) + B * np.sin(2 * np.pi * freq * x_unit)
+
+        # raw min/max
+        z_min = z_raw.min()
+        z_max = z_raw.max()
+
+        # Linearly map so that:
+        #      z_raw == z_max -> elevation == thalweg
+        #      z_raw == z_min -> elevation == thalweg + hbf
+        z_vals = thalweg + hbf * ((z_max - z_raw) / (z_max - z_min))
+
+        # Clamp so z_vals never drops below elevation
+        z_vals = np.maximum(z_vals, 1000)
+
+        return y_vals, z_vals
+
+    def afXShape(self, wbf, n=21, hbf=None, thalweg=None, d1=None, d2=None, ang1=None, ang2=None):
+
+        midInd = len(self.x_v) // 2
+        if thalweg is None:
+            thalweg = self.getThalweg()[midInd]
+
+        # Use provided values or defaults
+        d1 = float(d1) if d1 is not None else 5.0
+        d2 = float(d2) if d2 is not None else 5.0
+        ang1 = math.radians(float(ang1)) if ang1 is not None else math.radians(55)
+        ang2 = math.radians(float(ang2)) if ang2 is not None else math.radians(55)
+
+        # Determining the deepre side
+        flip = True
+        if d1 < d2:
+            # Right side is deeper- no swap
+            dd1, dd2 = d1, d2
+            a1, a2 = ang1, ang2
+        else:
+            # Left side is deeper - swap
+            flip = False
+            dd1, dd2 = d2, d1
+            a1, a2 = ang2, ang1
+
+        max_depth = dd2
+        top_max = thalweg + max_depth
+        crest_shallow = thalweg + dd1
+
+        run_shallow_tier = (max_depth - dd1) / math.tan(a1) if (max_depth - dd1) and math.tan(a1) != 0 else 0.0
+        run_shallow_bottom = dd1 / math.tan(a1) if math.tan(a1) != 0 else 0.0
+        run_shallow_total = run_shallow_tier + run_shallow_bottom
+
+        run_deep_total = max_depth / math.tan(a2) if math.tan(a2) != 0 else 0.0
+
+        leftBank, rightBank = -wbf / 2.0, +wbf / 2.0
+
+        # Breakpoints:
+        shallow_tier_end = leftBank + run_shallow_tier
+        shallow_slope_end = leftBank + run_shallow_total
+        deep_slope_start = rightBank - run_deep_total
+
+        x_vals = np.linspace(leftBank, rightBank, n)
+        z_vals = np.empty_like(x_vals)
+
+        for i, x in enumerate(x_vals):
+            if x <= shallow_tier_end:
+                #
+                if run_shallow_tier > 0:
+                    t = (x - leftBank) / run_shallow_tier
+                    z_vals[i] = top_max + t * (crest_shallow - top_max)
+                else:
+                    z_vals[i] = top_max
+            elif x <= shallow_slope_end:
+                if run_shallow_bottom > 0:
+                    t = (x - shallow_tier_end) / run_shallow_bottom
+                    z_vals[i] = crest_shallow + t * (thalweg - crest_shallow)
+                else:
+                    z_vals[i] = crest_shallow
+            elif x >= deep_slope_start:
+                if run_deep_total > 0:
+                    t = (rightBank - x) / run_deep_total
+                    z_vals[i] = top_max + t * (thalweg - top_max)
+                else:
+                    z_vals[i] = top_max
+            else:
+
+                z_vals[i] = thalweg
+
+
+        z_vals[0] = top_max
+        z_vals[-1] = top_max
+
+        if flip:
+            x_vals = -x_vals[::-1]
+            z_vals = z_vals[::-1]
+
+        return x_vals, z_vals
+
+
+    def dtXShape(self, wbf, hbf=None, thalweg=None, A=10.0, D=8.0, sigma=0.3):
+        """   
+        The DT shape is defined by:
+            z = A*(1 - x^2) - D * exp(- (x^2)/(2*sigma^2)),
+        where, x -> [-1, 1]
+        y is mapped to [-wbf/2, wbf/2]. 
+        """
+        if hbf is None or thalweg is None:
+            midInd = len(self.x_v) // 2
+            xVal = np.round(self.x_v[midInd])
+            lbx = self.levels_x['left'][0]
+            lbz = self.levels_z['left'][0]
+            rbx = self.levels_x['right'][0]
+            rbz = self.levels_z['right'][0]
+            lb_ind = np.where(lbx == xVal)[0]
+            if len(lb_ind) == 0:
+                bankH = rbz[np.where(rbx == xVal)[0][0]]
+            else:
+                bankH = lbz[lb_ind[0]]
+            hbf = bankH - self.thalweg[midInd]
+            thalweg = self.thalweg[midInd]
+        
+        n = self.xshapePoints
+        x_vals = np.linspace(-1, 1, n)    # dimensionless coordinate in [-1, 1]
+        y_vals = x_vals * (wbf / 2.0)
+
+        #  A*(1 - x^2) creates a parabolic U-shape,
+        #  & subtracting D*exp(-x^2/(2*sigma^2)) produces a Gaussian dip near x=0.
+        z_raw = A * (1 - x_vals**2) - D * np.exp(- (x_vals**2) / (2 * sigma**2))
+        
+        z_min = np.min(z_raw)
+        z_max = np.max(z_raw)
+        z_vals = thalweg + hbf * (1 - (z_raw - z_min) / (z_max - z_min))
+        
+        # Clamp so z_vals never drops below elevation
+        z_vals = np.maximum(z_vals, 1000)
+        
+        return y_vals, z_vals
+
+    def tuXShape(self, wbf, hbf=None, thalweg=None, A=10.0, B=2, C=4.0, sigma=0.2):
+        """
+        Returns (y, z) arrays for a 'TU' (Triple U) cross–section.
+        
+        The raw profile is defined by:
+            z_raw(x) = A*(1 - x^2) + B*sin(3*pi*x) - C*exp(-((x - 0.5)**2)/(2*sigma**2))
+        where, x -> [-1, 1]
+        y is mapped to [-wbf/2, wbf/2]. 
+        """
+        if hbf is None or thalweg is None:
+            midInd = len(self.x_v) // 2
+            xVal = np.round(self.x_v[midInd])
+            lbx = self.levels_x['left'][0]
+            lbz = self.levels_z['left'][0]
+            rbx = self.levels_x['right'][0]
+            rbz = self.levels_z['right'][0]
+            lb_ind = np.where(lbx == xVal)[0]
+            if len(lb_ind) == 0:
+                bankH = rbz[np.where(rbx == xVal)[0][0]]
+            else:
+                bankH = lbz[lb_ind[0]]
+            hbf = bankH - self.thalweg[midInd]
+            thalweg = self.thalweg[midInd]
+
+        n = self.xshapePoints  # number of sample points across the channel
+        x_vals = np.linspace(-1, 1, n)        #  [-1, 1]
+        y_vals = x_vals * (wbf / 2.0)           #  y from -wbf/2 to +wbf/2
+
+        # profile: three U's with extra deep third one.
+        z_raw = A * (1 - x_vals**2) + B * np.sin(3 * np.pi * x_vals) - C * np.exp(-((x_vals - 0.5)**2) / (2 * sigma**2))
+
+        z_min = np.min(z_raw)
+        z_max = np.max(z_raw)
+        z_vals = thalweg + hbf * (1 - (z_raw - z_min) / (z_max - z_min))
+    
+        # Clamp so z_vals never drops below elevation
+        z_vals = np.maximum(z_vals, 1000)
+
+        return y_vals, z_vals
+
+
+
+    # def addBankPoints(self, y, z, ind):
+    #     '''Add bank points to xshape points.
+        
+    #     y - y values for xshape points
+    #     z - z values for xshape points
+    #     ind - where the xshape points are calculated
+
+    #     Return:
+    #     y, z with bank points added
+    #     '''
+    #     leftEdge = y[0]-(y[1]-y[0])
+    #     y = np.append(leftEdge, y)
+    #     rightEdge = y[-1]+(y[1]-y[0])
+    #     y = np.append(y, rightEdge)
+
+    #     z = np.append(self.levels_z['left'][0][0], z)
+    #     z = np.append(z, self.levels_z['left'][0][0])
+
+    #     for i in range(1, len(self.levels_n['left'])):
+    #         y = np.append(self.levels_n['left'][i][ind] - self.levels_n['left'][0][ind] + leftEdge, y)
+    #         z = np.append(self.levels_z['left'][i][0], z)
+
+
+    #     for i in range(1, len(self.levels_n['right'])):
+    #         y = np.append(y, self.levels_n['right'][i][ind] - self.levels_n['right'][0][ind] + rightEdge)
+    #         z = np.append(z, self.levels_z['right'][i][0])
+    #     return y, z
+
 
     def addBankPoints(self, y, z, ind):
-        '''Add bank points to xshape points.
+        """Add bank points to xshape points.
         
         y - y values for xshape points
         z - z values for xshape points
-        ind - where the xshape points are calculated
-
-        Return:
-        y, z with bank points added
-        '''
-        leftEdge = y[0]-(y[1]-y[0])
+        ind - index of the station along the channel
+        """
+        # extend Y on both sides
+        leftEdge = y[0] - (y[1] - y[0])
         y = np.append(leftEdge, y)
-        rightEdge = y[-1]+(y[1]-y[0])
+        rightEdge = y[-1] + (y[1] - y[0])
         y = np.append(y, rightEdge)
 
-        z = np.append(self.levels_z['left'][0][0], z)
-        z = np.append(z, self.levels_z['left'][0][0])
+        # first non‐empty left Z‐level
+        left_z_levels = [lvl for lvl in self.levels_z['left'] if lvl.size > 0]
+        if not left_z_levels:
+            raise RuntimeError("addBankPoints: no non-empty left bank levels available")
+        z0 = left_z_levels[0][0]
 
+        # prepend & append that Z
+        z = np.append(z0, z)
+        z = np.append(z, z0)
+
+        # for additional left‐bank levels
         for i in range(1, len(self.levels_n['left'])):
-            y = np.append(self.levels_n['left'][i][ind] - self.levels_n['left'][0][ind] + leftEdge, y)
-            z = np.append(self.levels_z['left'][i][0], z)
+            if i < len(self.levels_z['left']) and self.levels_z['left'][i].size > 0:
+                y_val = (self.levels_n['left'][i][ind]
+                        - self.levels_n['left'][0][ind]
+                        + leftEdge)
+                z_val = self.levels_z['left'][i][0]
+                y = np.append(y_val, y)
+                z = np.append(z_val, z)
 
-
+        # for additional right‐bank levels
         for i in range(1, len(self.levels_n['right'])):
-            y = np.append(y, self.levels_n['right'][i][ind] - self.levels_n['right'][0][ind] + rightEdge)
-            z = np.append(z, self.levels_z['right'][i][0])
+            if i < len(self.levels_z['right']) and self.levels_z['right'][i].size > 0:
+                y_val = (self.levels_n['right'][i][ind]
+                        - self.levels_n['right'][0][ind]
+                        + rightEdge)
+                z_val = self.levels_z['right'][i][0]
+                y = np.append(y, y_val)
+                z = np.append(z, z_val)
+
         return y, z
 
 
@@ -981,4 +1409,3 @@ class Channel(Pipe):
             zi = z[yi][xi]
 
             self.xshape_z[i] += zi
-

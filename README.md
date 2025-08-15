@@ -1,4 +1,4 @@
-# RiverBuilder <img src="https://github.com/RiverBuilder/RiverBuilder/blob/master/logo.png" width="24">
+# RiverBuilderv1.3 <img src="https://github.com/RiverBuilder/RiverBuilder/blob/master/logo.png" width="24">
 
 ## Dependencies
 
@@ -9,10 +9,11 @@
 *These dependencies are already satisfied in GIS, so no worries about them if you are using GIS.*
 
 ## Quick Start
+Please refer `riverbuilder_v1.3_Input_template.txt` for getting an idea on preparing your input file.
 
 The main command to run the script is `python3 -m riverbuilder <inputfile.txt> <outputFolder> <your message>`. 
 
-* `<inputfile.txt>` provides essential parameters for the program to run. Its format is explained in *riverbuilderInput_format.txt* file, and there are plenty of example input files in the `/samples` folder.
+* `<inputfile.txt>` provides essential parameters for the program to run. Its format is explained in *riverbuilderInput_format.txt* file, and there are plenty of example input files in the `/examples_v1pt2` folder.
 
 * `<outputFolder>` sets the path of script output files. It is optional. If this argument is omitted, program will create a `riverbuilder_output` folder in your current working folder, and store output files there.
 

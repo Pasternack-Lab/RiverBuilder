@@ -1,5 +1,5 @@
-Given input file is: examples_v1pt2/S2v2/S2v2.txt
-Given output folder is: examples_v1pt2/S2v2/S2v2.txt
+Given input file is: .\examples_v1pt2\S2v2\S2v2.txt
+Given output folder is: .\examples_v1pt2\S2v2\S2v2.txt
 
 Datum is set to: 1000.0
 Length is set to: 140.0
@@ -12,6 +12,7 @@ Critical Shields Stress (t*50) is set to: 0.04
 Inner Channel Lateral Offset Minimum is set to: 10.0
 Inner Channel Depth Minimum is set to: 0.0
 Median Sediment Size (D50) is set to: 0.256
+Cross-Sectional Shape is set to: AU
 Left Valley Boundary Lateral Offset Minimum is set to: 23.251
 Left Valley Boundary Height Offset is set to: 17.029
 Right Valley Boundary Lateral Offset Minimum is set to: 23.251
