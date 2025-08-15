@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Debug riverbuilder module",
+            "type": "python",
+            "request": "launch",
+            "module": "riverbuilder",  // Runs the 'riverbuilder' module (like python -m riverbuilder)
+            "args": [
+                "samples/S1/S1.txt",  // Argument 1
+                "samples/S1/S1"       // Argument 2
+            ],
+            "console": "integratedTerminal",  // Runs in the integrated terminal
+            "cwd": "C:/Users/preyash/RiverBuilder",  // Set to project root as the working directory
+            "justMyCode": true,  // Optional: Set to false to step into external libraries
+            "stopOnEntry": true  // Ensures debugger stops at the first line
+        }
+    ]
+}

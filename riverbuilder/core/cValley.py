@@ -38,17 +38,53 @@ class Valley(Pipe):
         self.setThalweg()
 
 
-    def setValleyBoundary(self, z_offset, y_offset, direction, yfun=None):
-        z_start = self.getThalweg() - self.zd
-        z_max = np.amax(self.channel.levels_z[direction][-1])*self.dx
-        z_offset += z_max
+    # def setValleyBoundary(self, z_offset, y_offset, direction, yfun=None):
+    #     try:
+    #         print(f"Called setValleyBoundary for direction: {direction}")
+    #         z_start = self.getThalweg() - self.zd
+    #         z_max = np.amax(self.channel.levels_z[direction][-1])*self.dx
+    #         print(f"----------levels_z[{direction}] = {self.channel.levels_z[direction]}---------")
+    #         z_offset += z_max
+    #     except Exception as e:
+    #         print(f"Error in setValleyBoundary: {e}")
 
+    #     if direction == 'left':
+    #         y_max = np.amax(self.channel.levels_y[direction][-1])*self.dx
+    #         y_offset += y_max
+    #     else:
+    #         y_max = np.amin(self.channel.levels_y[direction][-1])*self.dx
+    #         y_offset = abs(y_max - y_offset)
+
+
+    #     super().setLevel(z_offset, z_start, y_offset, direction, yfun)
+
+
+    def setValleyBoundary(self, z_offset, y_offset, direction, yfun=None):
+        # Compute thalweg start
+        z_start = self.getThalweg() - self.zd
+
+        #  bank levels:
+        if not self.channel.levels_z[direction]:
+            raise RuntimeError(f"No elevation levels built for channel.{direction!r}")
+        if not self.channel.levels_y[direction]:
+            raise RuntimeError(f"No lateral levels built for channel.{direction!r}")
+
+        # Getting  the last bank‐level arrays
+        z_arr = self.channel.levels_z[direction][0]
+        y_arr = self.channel.levels_y[direction][0]
+
+        # Check they're non‐empty
+        if z_arr.size == 0:
+            raise RuntimeError(f"channel.levels_z[{direction}][-1] is empty")
+        if y_arr.size == 0:
+            raise RuntimeError(f"channel.levels_y[{direction}][-1] is empty")
+
+        # Compute max/min offsets
+        z_offset += np.amax(z_arr) * self.dx
         if direction == 'left':
-            y_max = np.amax(self.channel.levels_y[direction][-1])*self.dx
-            y_offset += y_max
+            y_offset += np.amax(y_arr) * self.dx
         else:
-            y_max = np.amin(self.channel.levels_y[direction][-1])*self.dx
-            y_offset = abs(y_max - y_offset)
+            y_offset = abs(np.amin(y_arr) * self.dx - y_offset)
 
 
         super().setLevel(z_offset, z_start, y_offset, direction, yfun)
@@ -153,52 +189,154 @@ class Valley(Pipe):
 
 
     def getXShapePlot(self):
-        '''return matplotlib plot object that contains X-Shape plots of the valley.'''
+        """
+        return matplotlib plot object that contains X-Shape plots of the valley,
+        merged with the channel cross-section.
+        """
+
+        # Finding station (minInd) where slope is min
         slope = self.getSlope()
-        minInd = np.argmin(np.absolute(slope))
+        minInd = np.argmin(np.abs(slope))
         minInd_x = self.x_v[minInd]
         
         y = []
         z = []
-        for i in range(0, len(self.levels_y['left'])):
-            y.append(self.levels_y['left'][-1*i-1][minInd]*self.dx)
-            z.append(self.levels_z['left'][-1*i-1][minInd]*self.dx)
 
-        for i in range(0, len(self.channel.levels_y['left'])):
-            ind = np.argmin(np.absolute(self.channel.levels_x['left'][-1*i-1] - minInd_x))
-            y.append(self.channel.levels_y['left'][-1*i-1][ind]*self.dx)
-            z.append(self.channel.levels_z['left'][-1*i-1][ind]*self.dx)
+        #Valley LEFT side (in reverse order) – nearest-x lookup
+        for i in range(len(self.levels_y['left'])):
+            lvl_x = self.levels_x['left'][-1 - i]
+            if lvl_x.size == 0:
+                continue
+            lvl_y = self.levels_y['left'][-1 - i]
+            lvl_z = self.levels_z['left'][-1 - i]
+            ind_local = np.argmin(np.abs(lvl_x - minInd_x))
+            y.append(lvl_y[ind_local] * self.dx)
+            z.append(lvl_z[ind_local] * self.dx)
 
-        indLeft = np.argmin(np.absolute(self.channel.levels_x['left'][0] - minInd_x))
-        indRight = np.argmin(np.absolute(self.channel.levels_x['right'][0] - minInd_x))
-        wbf = self.channel.levels_y['left'][0][indLeft] - self.channel.levels_y['right'][0][indRight]
-        if self.channel.tz == -1:
-            channel_y, channel_z = self.channel.pointXShape(ind, 0, wbf, self.channel.xshapePoints)
+        #Channel LEFT side -- also in reverse order
+        for i in range(len(self.channel.levels_y['left'])):
+            lvl_x = self.channel.levels_x['left'][-1 - i]
+            if lvl_x.size == 0:
+                continue
+            ind_local = np.argmin(np.abs(lvl_x - minInd_x))
+            y.append(self.channel.levels_y['left'][-1 - i][ind_local] * self.dx)
+            z.append(self.channel.levels_z['left'][-1 - i][ind_local] * self.dx)
+
+        # find wbf + station indices
+        indLeft  = np.argmin(np.abs(self.channel.levels_x['left'][0] - minInd_x))
+        indRight = np.argmin(np.abs(self.channel.levels_x['right'][0] - minInd_x))
+        wbf = (self.channel.levels_y['left'][0][indLeft]
+            - self.channel.levels_y['right'][0][indRight])
+        ind = indLeft
+
+        # (PY, CF, AF, DT, TU, or AU/SU)
+        ctype = getattr(self.channel, 'cross_section_type', None)
+        if ctype == 'CF':
+            CF_a = getattr(self.channel, 'CF_a', 5)
+            CF_b = getattr(self.channel, 'CF_b', 5)
+            CF_c = getattr(self.channel, 'CF_c', 5)
+            channel_y, channel_z = self.channel.cfXShape(
+                wbf,
+                n=self.channel.xshapePoints,
+                CF_a=CF_a, CF_b=CF_b, CF_c=CF_c
+            )
+            channel_y = channel_y[::-1]
+            channel_z = channel_z[::-1]
+
+        elif ctype == 'PY':
+            channel_y, channel_z = self.channel.pyXShape(wbf)
+            channel_y = channel_y[::-1]
+            channel_z = channel_z[::-1]
+
+        elif ctype == 'AF':
+            d1   = getattr(self.channel, 'af_d1', 5)
+            d2   = getattr(self.channel, 'af_d2', 5)
+            ang1 = getattr(self.channel, 'af_ang1', 55)
+            ang2 = getattr(self.channel, 'af_ang2', 55)
+            channel_y, channel_z = self.channel.afXShape(
+                wbf,
+                n=self.channel.xshapePoints,
+                d1=d1, d2=d2, ang1=ang1, ang2=ang2
+            )
+            channel_y = channel_y[::-1]
+            channel_z = channel_z[::-1]
+
+            actual_left_raw = self.channel.levels_z['left'][0][indLeft]
+            delta = actual_left_raw - channel_z[0]
+            channel_z = channel_z + delta
+
+            centerOffset = (
+                self.channel.levels_y['left'][0][indLeft]
+            + self.channel.levels_y['right'][0][indRight]
+            ) / 2.0
+            channel_y = (channel_y + centerOffset) * self.dx
+            channel_z = channel_z * self.dx
+
+            y += channel_y.tolist()
+            z += channel_z.tolist()
+            y.append(np.nan);  z.append(np.nan)
+
+        elif ctype == 'DT':
+            channel_y, channel_z = self.channel.dtXShape(wbf)
+            channel_y = channel_y[::-1]
+            channel_z = channel_z[::-1]
+
+        elif ctype == 'TU':
+            channel_y, channel_z = self.channel.tuXShape(wbf)
+            channel_y = channel_y[::-1]
+            channel_z = channel_z[::-1]
+
         else:
-            channel_y, channel_z = self.channel.suXShape(ind, wbf, self.channel.tz, self.channel.xshapePoints)
-        channel_y = channel_y + (self.channel.levels_y['left'][0][indLeft] + self.channel.levels_y['right'][0][indRight])/2
+            if self.channel.tz == -1:
+                channel_y, channel_z = self.channel.pointXShape(
+                    ind, 0, wbf, self.channel.xshapePoints
+                )
+            else:
+                channel_y, channel_z = self.channel.suXShape(
+                    ind, wbf, self.channel.tz, self.channel.xshapePoints
+                )
 
-        channel_y = channel_y*self.dx
-        channel_z = channel_z*self.dx
+        # Shift channel Y by center offset, then scale
+        centerOffset = (
+            self.channel.levels_y['left'][0][indLeft]
+        + self.channel.levels_y['right'][0][indRight]
+        ) / 2.0
+        channel_y = (channel_y + centerOffset) * self.dx
+        channel_z = channel_z * self.dx
 
+        # Append the channel cross-section
         y += channel_y.tolist()
         z += channel_z.tolist()
 
-        for i in range(0, len(self.channel.levels_y['right'])):
-            ind = np.argmin(np.absolute(self.channel.levels_x['right'][i] - minInd_x))
-            y.append(self.channel.levels_y['right'][i][ind]*self.dx)
-            z.append(self.channel.levels_z['right'][i][ind]*self.dx)
+        # Channel RIGHT side (forward order)
+        for i in range(len(self.channel.levels_y['right'])):
+            lvl_x = self.channel.levels_x['right'][i]
+            if lvl_x.size == 0:
+                continue
+            ind_local = np.argmin(np.abs(lvl_x - minInd_x))
+            y.append(self.channel.levels_y['right'][i][ind_local] * self.dx)
+            z.append(self.channel.levels_z['right'][i][ind_local] * self.dx)
 
-        for i in range(0, len(self.levels_y['right'])):
-            y.append(self.levels_y['right'][i][minInd]*self.dx)
-            z.append(self.levels_z['right'][i][minInd]*self.dx)
+        # Valley RIGHT side (forward order) – nearest-x lookup
+        for i in range(len(self.levels_y['right'])):
+            lvl_x = self.levels_x['right'][i]
+            if lvl_x.size == 0:
+                continue
+            lvl_y = self.levels_y['right'][i]
+            lvl_z = self.levels_z['right'][i]
+            ind_local = np.argmin(np.abs(lvl_x - minInd_x))
+            y.append(lvl_y[ind_local] * self.dx)
+            z.append(lvl_z[ind_local] * self.dx)
 
+        # Plot
         fig, ax = plt.subplots(1, 1)
         fig.suptitle('Valley X-Shape')
         ax.plot(y, z, '-', marker='o')
-        plt.xlabel('Y')
-        plt.xlabel('Z')
+        ax.set_xlabel('Y')
+        ax.set_ylabel('Z')
         return fig
+
+
 
 
     def tocsv(self, outfile):

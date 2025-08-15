@@ -60,7 +60,7 @@ X Resolution=1
 
 # If you want to make a detrended DEM for easier visualization of river relief, then use a valley slope of 0. 
 
-Valley Slope (Sv)=0
+Valley Slope (Sv)=0.001
 
 Critical Shields Stress (t*50)=0.04
 
