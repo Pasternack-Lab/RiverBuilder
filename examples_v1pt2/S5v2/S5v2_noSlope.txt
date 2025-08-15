@@ -1,0 +1,290 @@
+#DISCLAIMER
+#No warranty is expressed or implied regarding the usefulness or completeness of the information provided by River Builder and its documentation. References to commercial products do not imply endorsement by the Authors of River Builder. The concepts, materials, and methods used in the algorithms and described in the manual are for informational purposes only. The Authors have made substantial effort to ensure the accuracy of the algorithms and the manual, but science is uncertain and the Authors nor their employers or funding sponsors shall not be held liable for calculations and/or decisions made on the basis of application of River Builder. The information is provided "as is" and anyone who chooses to use the information is responsible for her or his own choices as to what to do with the data and the individual is responsible for the results the follow from their decisions.
+
+# This input is intended to be used for River Builder 1.2.0, which can be downloaded
+# from https://github.com/RiverBuilder/RiverBuilder
+
+# If you are new to River Builder, please read the user's manual first before working with this file.
+
+# Please provide input for the following parameters.
+
+###############
+
+#### NOTES ####
+
+###############
+
+# - All dimensional numbers are in units of meters.
+
+# - User-defined functions may be used for sub-reach variability parameters only.
+
+# - Everymline starting with '#' will be ignored.
+
+# - Bankfull depth can either be (A) user-defined or (B) calculated from the Critical Shields Stress and Median Sediment Size.
+
+# - Centerline Curvature can either be (A) user-defined or (B) calculate from centerline slope.
+
+# - Calculations of banks of channel are based on channel centerline; calculations of levels of valley are based on valley centerline.
+
+
+####################
+
+#### GUIDELINES ####
+
+####################
+
+# To ensure the program functions correctly, please abide by the following:
+
+# - Do not leave any parameters blank.
+
+# - When providing an input involving pi, do so in the form of a*pi, where a is a constant. (EX: 2*pi, pi, pi/6, 3+pi)
+
+
+####################################
+
+#### DOMAIN PARAMETERS (METERS) ####
+
+####################################
+
+Datum=1000
+
+Length=1000
+
+X Resolution=1
+
+##################################
+
+#### DIMENSIONLESS PARAMETERS ####
+
+##################################
+
+# If you want to make a detrended DEM for easier visualization of river relief, then use a valley slope of 0. 
+
+Valley Slope (Sv)=0
+
+Critical Shields Stress (t*50)=0.04
+
+
+####################################
+
+######## CHANNEL PARAMETERS ########
+
+####################################
+
+Inner Channel Lateral Offset Minimum=50
+
+Inner Channel Depth Minimum=1.019
+
+# If you use a sediment size, then it forces you to use SI units. See user's manual
+
+Median Sediment Size (D50)=0.032
+
+
+###############################
+
+#### CROSS SECTIONAL SHAPE ####
+
+###############################
+
+# AU = asymmetric U
+
+# SU = symmetric U
+
+# EN = flat bottom
+
+# TZ(n) = triangle, trapezoid, rectangle
+#	n is the number of edges along the
+#	trapezoidal base of the cross section
+#	such that 0 <= n <= Channel XS Points
+
+# Triangle: n = 1
+
+# Trapezoid: 1 <= n < Channel XS Points
+
+# Rectangle: n = Channel XS Points 
+
+Cross-Sectional Shape=AU
+
+################################
+
+#### PERLIN BED ROUGHNESS ######
+
+################################
+
+# PBR=0
+
+#################################
+
+########### BED ELEMENTS ########
+
+#################################
+
+# BEG1=(10, 25, 5, 10)
+
+#################################
+
+############# Check Dam #########
+
+#################################
+
+# CD1=(50, 5, 10)
+
+################################
+
+#### USER-DEFINED FUNCTIONS ####
+
+################################
+
+# a = amplitude
+
+# f = frequency
+
+# ps = phase shift
+
+# w = wavelength
+
+
+# Users may define their own functions to be any of the following: 
+
+# Sine function: SIN#=(a, f, ps)
+
+# Cosine function: COS#=(a, f, ps)
+
+# Sin square function: SINSQ#=(a, f, ps)
+
+# Cos Square function: COSSQ#=(a, f, ps)
+
+# Linear function: LINE#=(slope, y-intercept)
+
+# Perlin function: PERL#=(a, w)
+
+MASK0=(ALL)
+
+SIN1=(0.5, 1.25, pi, MASK0)
+COS1=(2, 2, pi, MASK0)
+
+SIN2=(0.2, 2, pi/2, MASK0)
+COS2=(0.3, 0.5, 0, MASK0)
+
+SIN3=(0.25, 1, 1, MASK0)
+
+SIN4=(100, 1, 0, MASK0)
+COS4=(50, 2, 0, MASK0)
+
+SIN5=(75, 1.5, 0, MASK0)
+COS5=(25, 4, pi, MASK0)
+
+SIN6=(25, 4.5, pi, MASK0)
+COS6=(55, 1.5, 0, MASK0)
+
+
+##################################################
+
+#### CHANNEL SUB-REACH VARIABILITY PARAMETERS ####
+
+##################################################
+
+# Meandering Centerline (Mc) Properties
+
+Meandering Centerline Function=SIN4
+Meandering Centerline Function=COS4
+
+# The "Smooth" variable prevents sharp turning in the centerline by averaging adjacent values.
+# Smooth=1 means taking average from 1 left point and 1 right point, so it will be 3 points in
+# total (including itself). Smooth=0 means no smooth at all. Whenever piece-wise mask function
+# is applied on centerline, at least Smooth=1 is recommended.
+
+# Centerline Smoothness
+
+Smooth=0
+
+
+# Centerline Curvature (Cs) Properties
+
+Centerline Curvature Function=SIN3
+
+# Thalweg Elevation (Zt) Properties
+
+Thalweg Elevation Function=SIN1
+Thalweg Elevation Function=COS1
+
+
+# Inner Bank Properties
+
+Left Inner Bank Function=SIN2
+Left Inner Bank Function=COS2
+
+
+Right Inner Bank Function=SIN2
+Right Inner Bank Function=COS2
+
+
+# Left Outer Banks Properties
+
+
+# Right Outer Banks Properties
+
+
+##################################################
+
+#### VALLEY SUB-REACH VARIABILITY PARAMETERS #####
+
+##################################################
+
+# Valley Centerline Properties
+
+# Left Valley Level Properties
+
+# starting with 50.5, 1.1
+L1 Valley Level Lateral Offset Minimum=75.5
+L1 Valley Level Height Offset=5.1
+L1 Valley Level Function=SIN5
+L1 Valley Level Function=COS5
+
+L2 Valley Level Lateral Offset Minimum=175.5
+L2 Valley Level Height Offset=15.1
+
+
+# Right Valley Level Properties
+
+# starting with 50.5, 1.1
+R1 Valley Level Lateral Offset Minimum=51.5
+R1 Valley Level Height Offset=5.1
+R1 Valley Level Function=SIN6
+R1 Valley Level Function=COS6
+
+R2 Valley Level Lateral Offset Minimum=151.5
+R2 Valley Level Height Offset=10.1
+
+
+# Left Valley Boundary Properties
+# Note: valley boundary is always parallel to 
+#       valley centerline, so no functions will
+#       apply to valley boundary. 
+#       Default boundary is 10 offset and 20 height.
+
+Left Valley Boundary Lateral Offset Minimum=180.5
+Left Valley Boundary Height Offset=15.1
+
+# Right Valley Boundary Properties
+
+Right Valley Boundary Lateral Offset Minimum=156.5
+Right Valley Boundary Height Offset=10.1
+
+###################################
+
+######## USER REQUIREMENTS ########
+
+###################################
+
+# Inner Channel Average Bankfull Width
+
+# Inner Channel Average Bankfull Width=30
+
+# Inner Channel Average Bankfull Depth
+
+# Inner Channel Average Bankfull Depth=10.5
+
+# River Slope
+
+# River Slope=0.001

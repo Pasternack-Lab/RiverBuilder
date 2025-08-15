@@ -1,0 +1,56 @@
+Given input file is: examples_v1pt2/S10v2/S10v2.txt
+Given output folder is: examples_v1pt2/S10v2/S10v2.txt
+
+Datum is set to: 200.0
+Length is set to: 2000.0
+X Resolution is set to: 1.0
+Alert! Channel XS Points is not defined by user, use default value 21 instead.
+Channel XS Points is set to: 21
+Valley Slope (Sv) is set to: 0.001
+Critical Shields Stress (t*50) is set to: 0.04
+Inner Channel Lateral Offset Minimum is set to: 50.0
+Inner Channel Depth Minimum is set to: 0.0
+Median Sediment Size (D50) is set to: 0.032
+Left Valley Boundary Lateral Offset Minimum is set to: 85.5
+Left Valley Boundary Height Offset is set to: 30.5
+Right Valley Boundary Lateral Offset Minimum is set to: 85.5
+Right Valley Boundary Height Offset is set to: 30.5
+Alert! Inner Channel Average Bankfull Width is not defined by user, use default value None instead.
+Inner Channel Average Bankfull Width is set to: None
+Alert! Inner Channel Average Bankfull Depth is not defined by user, use default value None instead.
+Inner Channel Average Bankfull Depth is set to: None
+Alert! River Slope is not defined by user, use default value None instead.
+River Slope is set to: None
+River Slope is set to: None
+User defined funtions are:
+MASK0 (ALL)
+SIN1 (1, 4, 0, MASK0)
+SIN2 (0.25, 5, 0, MASK0)
+COS1 (0.5, 4, 0, MASK0)
+COS2 (0.5, 2, 0, MASK0)
+SIN3 (3, 4, 0, MASK0)
+SIN4 (1, 2, 0, MASK0)
+COS3 (2, 4, 0, MASK0)
+COS4 (1, 2, 0, MASK0)
+SIN5 (175, 0.5, 0, MASK0)
+SIN6 (50, 2, 0, MASK0)
+COS5 (75, 4, pi, MASK0)
+COS6 (25, 10, 0, MASK0)
+SIN7 (100, 0.2, 0, MASK0)
+SIN8 (50, 1, 0, MASK0)
+COS7 (75, 2, pi, MASK0)
+COS8 (10, 7, 0, MASK0)
+SIN9 (100, 0.2, 0, MASK0)
+SIN10 (50, 1, pi, MASK0)
+COS9 (75, 2, 0, MASK0)
+COS10 (10, 7, 0, MASK0)
+
+Reshape not needed for river centerline.
+Creating Meandering Center line with Function:SIN5+SIN6+COS5+COS6
+Alert! Can't find function Centerline Curvature Function in user-defined functions. Ignore function Centerline Curvature Function.
+Creating Inner Channel Banks with left bank function: SIN3+SIN4+COS3+COS4
+                             with right bank function: SIN3+SIN4+COS3+COS4
+                             with thalweg elevation function: SIN1+SIN2+COS1+COS2
+
+
+Alert! Can't find function Valley Centerline Function in user-defined functions. Ignore function Valley Centerline Function.

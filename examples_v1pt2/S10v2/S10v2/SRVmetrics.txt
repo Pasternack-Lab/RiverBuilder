@@ -1,0 +1,13 @@
+River Channel Data:
+Sinuosity:1.323
+Channel Slope:0.0007564731186736845
+Average Width of Inner Channel:58.014
+Average Height of Inner Channel:2.372
+Coefficient of Variation (W_ic):0.093
+Coefficient of Variation (H_ic):0.371
+
+Valley Data:
+Sinuosity:1.0
+Valley Slope:0.001
+Average Width of L0 Valley Level is: 418.5
+Average Width of R0 Valley Level is: 179.5
