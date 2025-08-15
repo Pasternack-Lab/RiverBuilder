@@ -196,7 +196,7 @@ class Valley(Pipe):
 
         # Finding station (minInd) where slope is min
         slope = self.getSlope()
-        minInd = np.argmin(np.absolute(slope))
+        minInd = np.argmin(np.abs(slope))
         minInd_x = self.x_v[minInd]
         
         y = []
@@ -304,6 +304,7 @@ class Valley(Pipe):
         channel_y = (channel_y + centerOffset) * self.dx
         channel_z = channel_z * self.dx
 
+        # Append the channel cross-section
         y += channel_y.tolist()
         z += channel_z.tolist()
 
@@ -331,8 +332,8 @@ class Valley(Pipe):
         fig, ax = plt.subplots(1, 1)
         fig.suptitle('Valley X-Shape')
         ax.plot(y, z, '-', marker='o')
-        plt.xlabel('Y')
-        plt.xlabel('Z')
+        ax.set_xlabel('Y')
+        ax.set_ylabel('Z')
         return fig
 
 

@@ -11,6 +11,7 @@ Critical Shields Stress (t*50) is set to: 0.04
 Inner Channel Lateral Offset Minimum is set to: 50.0
 Inner Channel Depth Minimum is set to: 0.0
 Median Sediment Size (D50) is set to: 0.032
+Cross-Sectional Shape is set to: AF
 Left Valley Boundary Lateral Offset Minimum is set to: 80.5
 Left Valley Boundary Height Offset is set to: 27.5
 Right Valley Boundary Lateral Offset Minimum is set to: 80.5
@@ -53,8 +54,6 @@ Use user defined Centerline Curvature Function:SIN3
 Creating Inner Channel Banks with left bank function: SIN2+SIN22+COS2+COS22
                              with right bank function: SIN2+SIN22+COS2+COS22
                              with thalweg elevation function: SIN1+SIN12+COS1+COS12
-Alert! Cross-Sectional Shape value not recognizable! User input: AF
-Use asymmetric shape as default.
 
 
 Alert! Can't find function Valley Centerline Function in user-defined functions. Ignore function Valley Centerline Function.

@@ -35,7 +35,7 @@ from datetime import datetime
 ALLOWFUN = set(["MASK", "SIN", "COS", "LINE", "PERLIN", "SINSQ", "COSSQ", "CNOIDAL", "STEP", "HIGHCURV"])
 FUNPARANUM = {"SIN":4, "COS":4, 'SINSQ':4, 'COSSQ':4, "LINE":3, "PERLIN":4, "CNOIDAL":5, "STEP":5,
         "HIGHCURV": 5}
-XSHAPES = set(['AU', 'SU', 'EN'])
+XSHAPES = set(['AU', 'SU', 'EN', 'CF', 'PY', 'AF', 'DT', 'TU'])
 ADDON = {'BEG':[], 'CD':[]}
 
 
@@ -392,6 +392,9 @@ def inputCheck(fdict):
     fdict, info = paraCheck(fdict, "Median Sediment Size (D50)", 0.01, "float", 1)
     log += info
     log += printPara("Median Sediment Size (D50)", fdict)
+    fdict, info= paraCheck(fdict, "Cross-Sectional Shape", "SU", "str")
+    log+= info
+    log+=printPara("Cross-Sectional Shape", fdict)
     fdict, info = paraCheck(fdict, "Left Valley Boundary Lateral Offset Minimum", 10, "float", 1)
     log += info
     log += printPara("Left Valley Boundary Lateral Offset Minimum", fdict)
@@ -617,7 +620,6 @@ def buildChannel(fdict, funDict):
     log = ''
     c = Channel(fdict["Length"], fdict["Inner Channel Lateral Offset Minimum"],\
             fdict["Valley Slope (Sv)"], fdict["X Resolution"], fdict["Datum"])
-
     nPoints = fdict['Channel XS Points']
     c.setXShapePoints(nPoints)
 
@@ -776,6 +778,28 @@ def buildChannel(fdict, funDict):
         copyCurvature = copy.copy(c.getDynamicCurv())
         c.dynamicCurv = c.dynamicCurv*0
         c.setXShape()
+    elif fdict[ckey] == 'CF':
+        CF_a = fdict.get("CF_a")
+        CF_b = fdict.get("CF_b")
+        CF_c = fdict.get("CF_c")
+        c.setXShapeCF(CF_a,CF_b,CF_c)
+        c.cross_section_type = 'CF'
+    elif fdict[ckey] == 'PY':
+        c.setXShapePY()
+        c.cross_section_type = 'PY'
+    elif fdict[ckey] == 'AF':
+        d1 = fdict.get("Depth1")
+        d2 = fdict.get("Depth2")
+        ang1 = fdict.get("Angle1")
+        ang2 = fdict.get("Angle2")
+        c.setXShapeAF(d1, d2, ang1, ang2)
+        c.cross_section_type = 'AF'
+    elif fdict[ckey] == 'DT':
+        c.setXShapeDT()
+        c.cross_section_type = 'DT'
+    elif fdict[ckey] == 'TU':
+        c.setXShapeTU()
+        c.cross_section_type = 'TU'
     else:
         fdict, info = paraCheck(fdict, "TZ(n)", 1, "int", 1)
         log += info
