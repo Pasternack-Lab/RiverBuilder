@@ -1,5 +1,5 @@
-Given input file is: inputSamples/S10.txt
-Given output folder is: inputSamples/S10.txt
+Given input file is: samples/S10/S10.txt
+Given output folder is: samples/S10/S10.txt
 
 Datum is set to: 200.0
 Length is set to: 2000.0
@@ -25,6 +25,8 @@ Inner Channel Average Bankfull Width is set to: None
 Alert! Inner Channel Average Bankfull Depth is not defined by user, use default value None instead.
 Inner Channel Average Bankfull Depth is set to: None
 Alert! River Slope is not defined by user, use default value None instead.
+River Slope is set to: None
+Alert! Smooth is not defined by user, use default value 0 instead.
 River Slope is set to: None
 User defined funtions are:
 MASK0 (ALL)
@@ -55,6 +57,7 @@ Alert! Can't find function Centerline Curvature Function in user-defined functio
 Creating Inner Channel Banks with left bank function: SIN3+SIN4+COS3+COS4
                              with right bank function: SIN3+SIN4+COS3+COS4
                              with thalweg elevation function: SIN1+SIN2+COS1+COS2
+
 
 Alert! Can't find function Valley Centerline Function in user-defined functions. Ignore function Valley Centerline Function.
 Creating R1 Valley Breakline with function: SIN9+SIN10+COS9+COS10

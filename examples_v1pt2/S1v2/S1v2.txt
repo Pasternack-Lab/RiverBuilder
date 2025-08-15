@@ -103,7 +103,7 @@ Median Sediment Size (D50)=0
 
 # Rectangle: n = Channel XS Points 
 
-Cross-Sectional Shape=AF
+Cross-Sectional Shape=PY
 
 # Channel XS Points=21
 

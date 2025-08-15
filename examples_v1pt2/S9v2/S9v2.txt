@@ -160,7 +160,7 @@ Cross-Sectional Shape=AU
 
 MASK0=(ALL)
 
-SIN1=(1, 4, pi, MASK0)
+SIN1=(10, 4, pi, MASK0)
 SIN12=(0.25, 5, pi, MASK0)
 COS1=(0.5, 4, pi, MASK0)
 COS12=(0.5, 2, pi, MASK0)
@@ -204,7 +204,7 @@ Centerline Curvature Function=SIN3
 
 # Thalweg Elevation (Zt) Properties
 
-Thalweg Elevation Function=SIN1
+Thalweg Elevation Function=SIN12
 Thalweg Elevation Function=SIN12
 Thalweg Elevation Function=COS1
 Thalweg Elevation Function=COS12
@@ -212,7 +212,7 @@ Thalweg Elevation Function=COS12
 
 # Inner Bank Properties
 
-Left Inner Bank Function=SIN2
+Left Inner Bank Function=SIN12
 Left Inner Bank Function=COS2
 
 Right Inner Bank Function=SIN2

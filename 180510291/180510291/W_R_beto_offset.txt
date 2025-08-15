@@ -1,0 +1,3 @@
+LINE7=(0, 4.712, MASK0)
+Lateral Offset Minimum (half)=2.842
+Lateral Offset Minimum (full)=5.684

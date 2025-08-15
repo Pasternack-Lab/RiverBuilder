@@ -1,5 +1,5 @@
-Given input file is: inputSamples\S3_noSlope.txt
-Given output folder is: inputSamples\S3_noSlope.txt
+Given input file is: samples/S3/S3_noSlope.txt
+Given output folder is: samples/S3/S3_noSlope.txt
 
 Datum is set to: 1000.0
 Length is set to: 420.0
@@ -21,6 +21,8 @@ Inner Channel Average Bankfull Width is set to: None
 Alert! Inner Channel Average Bankfull Depth is not defined by user, use default value None instead.
 Inner Channel Average Bankfull Depth is set to: None
 Alert! River Slope is not defined by user, use default value None instead.
+River Slope is set to: None
+Alert! Smooth is not defined by user, use default value 0 instead.
 River Slope is set to: None
 User defined funtions are:
 MASK0 (ALL)
@@ -44,5 +46,6 @@ Alert! Can't find function R1 Outer Bank Function in user-defined functions. Ign
 Creating R1 Outer Bank with constant width: 49.75
 Alert! Can't find function R2 Outer Bank Function in user-defined functions. Ignore function R2 Outer Bank Function.
 Creating R2 Outer Bank with constant width: 50.0
+
 
 Alert! Can't find function Valley Centerline Function in user-defined functions. Ignore function Valley Centerline Function.

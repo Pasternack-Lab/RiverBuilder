@@ -38,17 +38,53 @@ class Valley(Pipe):
         self.setThalweg()
 
 
-    def setValleyBoundary(self, z_offset, y_offset, direction, yfun=None):
-        z_start = self.getThalweg() - self.zd
-        z_max = np.amax(self.channel.levels_z[direction][-1])*self.dx
-        z_offset += z_max
+    # def setValleyBoundary(self, z_offset, y_offset, direction, yfun=None):
+    #     try:
+    #         print(f"Called setValleyBoundary for direction: {direction}")
+    #         z_start = self.getThalweg() - self.zd
+    #         z_max = np.amax(self.channel.levels_z[direction][-1])*self.dx
+    #         print(f"----------levels_z[{direction}] = {self.channel.levels_z[direction]}---------")
+    #         z_offset += z_max
+    #     except Exception as e:
+    #         print(f"Error in setValleyBoundary: {e}")
 
+    #     if direction == 'left':
+    #         y_max = np.amax(self.channel.levels_y[direction][-1])*self.dx
+    #         y_offset += y_max
+    #     else:
+    #         y_max = np.amin(self.channel.levels_y[direction][-1])*self.dx
+    #         y_offset = abs(y_max - y_offset)
+
+
+    #     super().setLevel(z_offset, z_start, y_offset, direction, yfun)
+
+
+    def setValleyBoundary(self, z_offset, y_offset, direction, yfun=None):
+        # Compute thalweg start
+        z_start = self.getThalweg() - self.zd
+
+        #  bank levels:
+        if not self.channel.levels_z[direction]:
+            raise RuntimeError(f"No elevation levels built for channel.{direction!r}")
+        if not self.channel.levels_y[direction]:
+            raise RuntimeError(f"No lateral levels built for channel.{direction!r}")
+
+        # Getting  the last bank‐level arrays
+        z_arr = self.channel.levels_z[direction][0]
+        y_arr = self.channel.levels_y[direction][0]
+
+        # Check they're non‐empty
+        if z_arr.size == 0:
+            raise RuntimeError(f"channel.levels_z[{direction}][-1] is empty")
+        if y_arr.size == 0:
+            raise RuntimeError(f"channel.levels_y[{direction}][-1] is empty")
+
+        # Compute max/min offsets
+        z_offset += np.amax(z_arr) * self.dx
         if direction == 'left':
-            y_max = np.amax(self.channel.levels_y[direction][-1])*self.dx
-            y_offset += y_max
+            y_offset += np.amax(y_arr) * self.dx
         else:
-            y_max = np.amin(self.channel.levels_y[direction][-1])*self.dx
-            y_offset = abs(y_max - y_offset)
+            y_offset = abs(np.amin(y_arr) * self.dx - y_offset)
 
 
         super().setLevel(z_offset, z_start, y_offset, direction, yfun)
@@ -157,6 +193,7 @@ class Valley(Pipe):
         return matplotlib plot object that contains X-Shape plots of the valley,
         merged with the channel cross-section.
         """
+
         # 1) Find the station (minInd) where slope is minimal
         slope = self.getSlope()
         minInd = np.argmin(np.abs(slope))
@@ -168,6 +205,8 @@ class Valley(Pipe):
         # 2) Valley LEFT side (in reverse order) – nearest-x lookup
         for i in range(len(self.levels_y['left'])):
             lvl_x = self.levels_x['left'][-1 - i]
+            if lvl_x.size == 0:
+                continue
             lvl_y = self.levels_y['left'][-1 - i]
             lvl_z = self.levels_z['left'][-1 - i]
             ind_local = np.argmin(np.abs(lvl_x - minInd_x))
@@ -177,6 +216,8 @@ class Valley(Pipe):
         # 3) Channel LEFT side -- also in reverse order
         for i in range(len(self.channel.levels_y['left'])):
             lvl_x = self.channel.levels_x['left'][-1 - i]
+            if lvl_x.size == 0:
+                continue
             ind_local = np.argmin(np.abs(lvl_x - minInd_x))
             y.append(self.channel.levels_y['left'][-1 - i][ind_local] * self.dx)
             z.append(self.channel.levels_z['left'][-1 - i][ind_local] * self.dx)
@@ -208,7 +249,6 @@ class Valley(Pipe):
             channel_z = channel_z[::-1]
 
         elif ctype == 'AF':
-            # 1) Building the raw AF profile (local y & z)
             d1   = getattr(self.channel, 'af_d1', 5)
             d2   = getattr(self.channel, 'af_d2', 5)
             ang1 = getattr(self.channel, 'af_ang1', 55)
@@ -218,18 +258,13 @@ class Valley(Pipe):
                 n=self.channel.xshapePoints,
                 d1=d1, d2=d2, ang1=ang1, ang2=ang2
             )
-            # 2) Reversing so that left‐bank end comes first
             channel_y = channel_y[::-1]
             channel_z = channel_z[::-1]
 
-            # Shift the AF‐end so it exactly meets the inner‐bank elevation
             actual_left_raw = self.channel.levels_z['left'][0][indLeft]
-            #    The AF‐profile’s first point (channel_z[0]) is top_max; compute delta:
             delta = actual_left_raw - channel_z[0]
-            #    Shift *all* AF Zs by that delta:
             channel_z = channel_z + delta
 
-            # 3) Applying the center‐offset and scale to real units
             centerOffset = (
                 self.channel.levels_y['left'][0][indLeft]
             + self.channel.levels_y['right'][0][indRight]
@@ -237,12 +272,9 @@ class Valley(Pipe):
             channel_y = (channel_y + centerOffset) * self.dx
             channel_z = channel_z * self.dx
 
-            # 4) Append to the valley traces as previous
             y += channel_y.tolist()
             z += channel_z.tolist()
-
-            y.append(np.nan)
-            z.append(np.nan)
+            y.append(np.nan);  z.append(np.nan)
 
         elif ctype == 'DT':
             channel_y, channel_z = self.channel.dtXShape(wbf)
@@ -279,6 +311,8 @@ class Valley(Pipe):
         # 7) Channel RIGHT side (forward order)
         for i in range(len(self.channel.levels_y['right'])):
             lvl_x = self.channel.levels_x['right'][i]
+            if lvl_x.size == 0:
+                continue
             ind_local = np.argmin(np.abs(lvl_x - minInd_x))
             y.append(self.channel.levels_y['right'][i][ind_local] * self.dx)
             z.append(self.channel.levels_z['right'][i][ind_local] * self.dx)
@@ -286,6 +320,8 @@ class Valley(Pipe):
         # 8) Valley RIGHT side (forward order) – nearest-x lookup
         for i in range(len(self.levels_y['right'])):
             lvl_x = self.levels_x['right'][i]
+            if lvl_x.size == 0:
+                continue
             lvl_y = self.levels_y['right'][i]
             lvl_z = self.levels_z['right'][i]
             ind_local = np.argmin(np.abs(lvl_x - minInd_x))
@@ -299,6 +335,8 @@ class Valley(Pipe):
         ax.set_xlabel('Y')
         ax.set_ylabel('Z')
         return fig
+
+
 
 
     def tocsv(self, outfile):

@@ -1,0 +1,3 @@
+LINE6=(0, 3.208, MASK0)
+Lateral Offset Minimum (half)=1.090
+Lateral Offset Minimum (full)=2.180

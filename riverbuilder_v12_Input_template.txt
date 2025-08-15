@@ -1,4 +1,7 @@
-#DISCLAIMER#No warranty is expressed or implied regarding the usefulness or completeness of the information provided by River Builder and its documentation. References to commercial products do not imply endorsement by the Authors of River Builder. The concepts, materials, and methods used in the algorithms and described in the manual are for informational purposes only. The Authors have made substantial effort to ensure the accuracy of the algorithms and the manual, but science is uncertain and the Authors nor their employers or funding sponsors shall not be held liable for calculations and/or decisions made on the basis of application of River Builder. The information is provided "as is" and anyone who chooses to use the information is responsible for her or his own choices as to what to do with the data and the individual is responsible for the results the follow from their decisions.# This input is intended to be used for River Builder 1.2.0, which can be downloaded
+#DISCLAIMER
+#No warranty is expressed or implied regarding the usefulness or completeness of the information provided by River Builder and its documentation. References to commercial products do not imply endorsement by the Authors of River Builder. The concepts, materials, and methods used in the algorithms and described in the manual are for informational purposes only. The Authors have made substantial effort to ensure the accuracy of the algorithms and the manual, but science is uncertain and the Authors nor their employers or funding sponsors shall not be held liable for calculations and/or decisions made on the basis of application of River Builder. The information is provided "as is" and anyone who chooses to use the information is responsible for her or his own choices as to what to do with the data and the individual is responsible for the results the follow from their decisions.
+
+# This input is intended to be used for River Builder 1.2.0, which can be downloaded
 # from https://github.com/RiverBuilder/RiverBuilder
 
 # If you are new to River Builder, please read the user's manual first before working with this file.
@@ -114,10 +117,21 @@ TZ(n)=21
 
 # PBR=0
 
-############################################ BED ELEMENTS ########################################## BEG1=(10, 25, 5, 10)
+#################################
 
-############################################## Check Dam ##########################################
-# CD1=(50, 5, 10)
+########### BED ELEMENTS ########
+
+#################################
+
+# BEG1=(10, 25, 5, 10)
+
+#################################
+
+############# Check Dam #########
+
+#################################
+
+# CD1=(50, 5, 10)
 
 ################################
 
@@ -236,4 +250,20 @@ Left Valley Boundary Height Offset=0
 Right Valley Boundary Lateral Offset Minimum=10
 Right Valley Boundary Height Offset=0
 
-########################################### USER REQUIREMENTS ############################################ Inner Channel Average Bankfull Width# Inner Channel Average Bankfull Width=30# Inner Channel Average Bankfull Depth# Inner Channel Average Bankfull Depth=10.5# River Slope# River Slope=0.001
+###################################
+
+######## USER REQUIREMENTS ########
+
+###################################
+
+# Inner Channel Average Bankfull Width
+
+# Inner Channel Average Bankfull Width=30
+
+# Inner Channel Average Bankfull Depth
+
+# Inner Channel Average Bankfull Depth=10.5
+
+# River Slope
+
+# River Slope=0.001

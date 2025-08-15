@@ -2,16 +2,16 @@ River Channel Data:
 Sinuosity:1.069
 Channel Slope:0.0
 Average Width of Inner Channel:57.757
-Average Height of Inner Channel:6.101
+Average Height of Inner Channel:3.976
 Coefficient of Variation (W_ic):0.105
-Coefficient of Variation (H_ic):0.321
+Coefficient of Variation (H_ic):0.225
 
 Valley Data:
 Sinuosity:1.0
 Valley Slope:0.0
-Average Wbf of L0 Valley Level is: 427.95
-Average Wbf of L1 Valley Level is: 627.95
-Average Wbf of L2 Valley Level is: 741.506
-Average Wbf of R0 Valley Level is: 128.555
-Average Wbf of R1 Valley Level is: 328.555
-Average Wbf of R2 Valley Level is: 453.506
+Average Width of L0 Valley Level is: 144.95
+Average Width of L1 Valley Level is: 200.0
+Average Width of L2 Valley Level is: 288.0
+Average Width of R0 Valley Level is: 113.555
+Average Width of R1 Valley Level is: 200.0
+Average Width of R2 Valley Level is: 20.0

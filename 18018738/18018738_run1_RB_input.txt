@@ -1,0 +1,120 @@
+
+#DISCLAIMER
+
+#No warranty is expressed or implied regarding the usefulness or completeness of the information provided by River Builder and its documentation. References to commercial products do not imply endorsement by the Authors of River Builder. The concepts, materials, and methods used in the algorithms and described in the manual are for informational purposes only. The Authors have made substantial effort to ensure the accuracy of the algorithms and the manual, but science is uncertain and the Authors nor their employers or funding sponsors shall not be held liable for calculations and/or decisions made on the basis of application of River Builder. The information is provided "as is" and anyone who chooses to use the information is responsible for her or his own choices as to what to do with the data and the individual is responsible for the results the follow from their decisions.
+
+# This input is intended to be used for riverbuilder1.0.0.
+
+###############
+
+#### NOTES ####
+
+###############
+
+# - All dimensional numbers are in units of meters.
+
+# - User-defined functions may be used for sub-reach variability parameters only.
+
+# - Everyline starting with '#' will be ignored. If one wants to use example inputs, s/he needs to
+
+#   delete the '#' at the start of paramenter lines.
+
+# - Bankfull depth can either be (A) user-defined or (B) calculated from the Critical Shields Stress and Median Sediment Size.
+
+# - Centerline Curvature can either be (A) user-defined or (B) calculate from centerline slope.
+
+# - Calculations of banks of channel are based on channel centerline; calculations of levels of valley are based on valley centerline.
+
+####################
+
+#### GUIDELINES ####
+
+####################
+
+#   To ensure the program functions correctly, please abide by the following:
+
+#   - Put each parameter or function in a separate line.
+
+#   - When providing an input involving pi, do so in the form of a*pi, where a is a constant. (EX: 2*pi, pi, pi/6, 3+pi)
+
+####################################
+
+#### DOMAIN PARAMETERS (METERS) ####
+
+####################################
+
+# These parameters initial the environment of the river; the follow will be an example input.
+
+# The "Smooth" variable prevents sharp turning in centerline by averaging adjacent values.
+#    Smooth=1 means taking average from 1 left point and 1 right point, so it will be 3 points in
+#    total (including itself). Smooth=0 means no smooth at all. Whenever piece-wise mask function
+#    is applied on centerline, at least Smooth=1 is recommended.
+
+Datum=500
+Length=   62.000
+Valley Slope (Sv)=0.0267
+Smooth=1
+X Resolution=0.5
+
+####################################
+
+#### CHANNEL PARAMETERS (METERS) ####
+
+####################################
+
+# These parameters controls the inner channel of the river; the follow will be an example input.
+# Note that if "Inner Channel Depth Minimum" is set to 0, then the depth minimum will be 
+# calculated based on median sediment size and critical shields stress.
+
+Inner Channel Lateral Offset Minimum=2.5375
+Inner Channel Depth Minimum=1.4190
+Median Sediment Size (D50)=0
+Critical Shields Stress (t*50)=0
+
+###############################
+
+#### CROSS SECTIONAL SHAPE ####
+
+###############################
+
+# These parameters handles the cross-sectional shape of inner channel. 
+
+Channel XS Points=21
+Cross-Sectional Shape=AU
+
+################################
+
+#### USER-DEFINED FUNCTIONS ####
+
+################################
+
+MASK0=(ALL)
+SIN1=(-6.5000, 0.5000, 0.0000, MASK0)
+
+############################################
+
+#### CHANNEL BREAKLINE INPUT PARAMETERS ####
+
+############################################
+
+Meandering Centerline Function=18018738\thal_lat.txt
+Thalweg Elevation Function=18018738\thZ_d.txt
+
+# Inner Bank Properties
+Left Inner Bank Function=18018738\W_L_beto.txt
+Right Inner Bank Function=18018738\W_R_beto.txt
+
+# Valley Level Properties
+Valley Centerline Function=18018738\Z_vfe.txt
+L1 Valley Level Lateral Offset Minimum=1.0898
+L1 Valley Level Height Offset=0.0015
+L1 Valley Level Function=18018738\W_L_vfe.txt
+R1 Valley Level Lateral Offset Minimum=-9.3096
+R1 Valley Level Height Offset=0.0015
+R1 Valley Level Function=18018738\W_R_vfe.txt
+
+# Valley Boundary Properties
+Left Valley Boundary Lateral Offset Minimum=11.0898
+Left Valley Boundary Height Offset=5.0015
+Right Valley Boundary Lateral Offset Minimum=0.6904
+Right Valley Boundary Height Offset=5.0015

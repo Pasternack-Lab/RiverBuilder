@@ -1,8 +1,7 @@
-a simple test
-Given input file is: samples\S1\S1.txt
-Given output folder is: samples\S1\S1.txt
+Given input file is: samples/S1/S1.txt
+Given output folder is: samples/S1/S1.txt
 
-Datum is set to: 1000.0
+Datum is set to: 1005.0
 Length is set to: 420.0
 Alert! X Resolution is not defined by user, use default value 1 instead.
 X Resolution is set to: 1
@@ -10,8 +9,8 @@ Alert! Channel XS Points is not defined by user, use default value 21 instead.
 Channel XS Points is set to: 21
 Valley Slope (Sv) is set to: 0.002
 Critical Shields Stress (t*50) is set to: 0.0
-Inner Channel Lateral Offset Minimum is set to: 30.0
-Inner Channel Depth Minimum is set to: 2.11
+Inner Channel Lateral Offset Minimum is set to: 20.0
+Inner Channel Depth Minimum is set to: 0.0
 Median Sediment Size (D50) is set to: 0.0
 Left Valley Boundary Lateral Offset Minimum is set to: 10.0
 Left Valley Boundary Height Offset is set to: 20.0
@@ -34,7 +33,6 @@ SIN1 (2.5, 1, 0, MASK0)
 Alert! Can't find function Meandering Centerline Function in user-defined functions. Ignore function Meandering Centerline Function.
 Reshape not needed for river centerline.
 Creating Meandering Center line with Function:None
-Use user defined Inner Channel Depth Minimum.
 Alert! Can't find function Centerline Curvature Function in user-defined functions. Ignore function Centerline Curvature Function.
 Creating Inner Channel Banks with left bank function: SIN1
                              with right bank function: SIN1

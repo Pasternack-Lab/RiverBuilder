@@ -13,5 +13,5 @@ Average Width Offset of R2 Outer Bank is: 13.251
 Valley Data:
 Sinuosity:1.0
 Valley Slope:0.015
-Average Width of L0 Valley Level is: 36.251
-Average Width of R0 Valley Level is: 36.251
+Average Width of L0 Valley Level is: 28.251
+Average Width of R0 Valley Level is: 28.251

@@ -1,0 +1,3 @@
+LINE8=(0, 7.696, MASK0)
+Lateral Offset Minimum (half)=7.500
+Lateral Offset Minimum (full)=15.000

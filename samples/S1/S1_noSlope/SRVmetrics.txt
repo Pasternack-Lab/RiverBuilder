@@ -9,5 +9,5 @@ Coefficient of Variation (H_ic):0.383
 Valley Data:
 Sinuosity:1.0
 Valley Slope:0.0
-Average Wbf of L0 Valley Level is: 30.0
-Average Wbf of R0 Valley Level is: 30.0
+Average Width of L0 Valley Level is: 30.0
+Average Width of R0 Valley Level is: 30.0

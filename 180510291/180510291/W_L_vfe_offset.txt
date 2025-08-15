@@ -1,0 +1,3 @@
+LINE9=(0, 21.806, MASK0)
+Lateral Offset Minimum (half)=20.422
+Lateral Offset Minimum (full)=40.844

@@ -11,6 +11,7 @@ Critical Shields Stress (t*50) is set to: 0.0
 Inner Channel Lateral Offset Minimum is set to: 30.0
 Inner Channel Depth Minimum is set to: 2.11
 Median Sediment Size (D50) is set to: 0.0
+Cross-Sectional Shape is set to: PY
 Left Valley Boundary Lateral Offset Minimum is set to: 65.5
 Left Valley Boundary Height Offset is set to: 32.5
 Right Valley Boundary Lateral Offset Minimum is set to: 65.5

@@ -1,4 +1,6 @@
-S4_log.txt
+Given input file is: samples/S4/S4.txt
+Given output folder is: samples/S4/S4.txt
+
 Datum is set to: 1000.0
 Length is set to: 140.0
 Alert! X Resolution is not defined by user, use default value 1 instead.

@@ -1,6 +1,5 @@
-simple text
-Given input file is: inputSamples/S1_noSlope.txt
-Given output folder is: inputSamples/S1_noSlope.txt
+Given input file is: samples/S1/S1_noSlope.txt
+Given output folder is: samples/S1/S1_noSlope.txt
 
 Datum is set to: 1000.0
 Length is set to: 420.0
@@ -27,6 +26,8 @@ Alert! Inner Channel Average Bankfull Depth is not defined by user, use default 
 Inner Channel Average Bankfull Depth is set to: None
 Alert! River Slope is not defined by user, use default value None instead.
 River Slope is set to: None
+Alert! Smooth is not defined by user, use default value 0 instead.
+River Slope is set to: None
 User defined funtions are:
 MASK0 (ALL)
 SIN1 (2.5, 1, 0, MASK0)
@@ -39,5 +40,6 @@ Alert! Can't find function Centerline Curvature Function in user-defined functio
 Creating Inner Channel Banks with left bank function: SIN1
                              with right bank function: SIN1
                              with thalweg elevation function: SIN1
+
 
 Alert! Can't find function Valley Centerline Function in user-defined functions. Ignore function Valley Centerline Function.
