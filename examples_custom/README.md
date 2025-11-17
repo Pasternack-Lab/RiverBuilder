@@ -1,102 +1,55 @@
-## RiverSTICH
+## River Builder with custom Geomorphic Variability Functions (GVFs)
 
-_River-STICH_ (**S**urvey **T**ransect **I**nterpolation to reconstruct 3D **Ch**annels)
+Updated on 11/16/2025
 
-Updated on 6/10/2025
-
-RiverSTICH converts traditional transect-based survey data into descriptive reach-scale attributes and variability functions and parameters that can then be used by [RiverBuilder](https://github.com/Pasternack-Lab/RiverBuilder) to construct a modular 3D synthetic river channel.
+In [River Builder](https://github.com/Pasternack-Lab/RiverBuilder) (RB), GVFs can be implemented in one of two ways: (1) by directly specifying mathematical functions for each GVF or (2) generating a straight River Builder channel based on reach-average attributes, and then applying GVFs externally by imposing GVF series from [RiverSTICH](https://github.com/USU-WET-Lab/RiverSTICH) to the River Builder output (e.g., table of x, y, z coordinates of topography). Here, we present the second approach which performs better for a channel with a highly sinuous thalweg function.
 
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
+Here, we present an example developed for a V-shape River Builder terrain with feature-based XS survey for SFE Leggett to demonstrate how this approach works.
+
 ### Prerequisites
 
 * numpy
 * pandas
-* openpyxl
-* simpledbf
 * matplotlib
 * scipy
+* arcpy (for RB_to_terrain_custom.py)
 
 <!-- USAGE EXAMPLES -->
-## Usage Examples
+## Workflow
 
-Here, we present two examples using different types of XS survey data to demonstrate how RiverSTICH works.
+1. Write a RB txt input file to generate a straight RB channel based on reach-average attributes by running RB_gcs_custom.py (in /tools)
+- Input (/tools/gcs)
+    - SFE_Leggett_FB_V.xlsx
+        - Interpolated contour series (e.g., SFE_Leggett_RB_metrics.xlsx)
+        - This is the final output of the first example of [RiverSTICH](https://github.com/USU-WET-Lab/RiverSTICH).
+- Output (/examples_custom/SFE_Leggett_FB_V)
+    - SFE_Leggett_FB_V.txt
+        - The main input txt file for River Builder with reach-average attributes
+     
+2. Generate a straight RB channel by running RB_run_custom.py (in /tools)
+- Input (/examples_custom/SFE_Leggett_FB_V)
+    - SFE_Leggett_FB_V.txt
+        - The output of previous step
+- Output (/examples_custom/SFE_Leggett_FB_V/SFE_Leggett_FB_V)
+    - SRVtopo.csv
+        - The main RB output (e.g., table of x, y, z coordinates of topography)
 
-#### Example 1. Auto level survey to RiverSTICH (main_SFE_Leggett.py)
 
-- Input (/survey/SFE_Leggett)
-    - Field survey data sheet (SFE_Leggett.xlsx, see [Survey_protocols.docx](/survey/SFE_Leggett/Survey_protocols.docx) for more information)
-        - Equal-space transect survey
+            <!-- ![Figure 1.](/SFE_Leggett_FB_V/SFE_Leggett_FB_V/SRVlevels_xy.png) -->
             <p align="center" width="100%">
-            <img width="80%" src="/survey/SFE_Leggett/survey1.png" alt="input1">
+            <img width="80%" src="/SFE_Leggett_FB_V/SFE_Leggett_FB_V/SRVlevels_xy.png" alt="input2">
             </p>
-        - Longitudinal profile survey
-            <!---![Figure 2.](/survey/SFE_Leggett/survey2.png)-->
-            <p align="center" width="100%">
-            <img width="60%" src="/survey/SFE_Leggett/survey2.png" alt="input2">
-            </p>
-        - Additional riffle crests and pool troughs transect survey
-            <!---![Figure 3.](/survey/SFE_Leggett/survey3.png)-->
-            <p align="center" width="100%">
-            <img width="80%" src="/survey/SFE_Leggett/survey3.png" alt="input3">
-            </p>
-- Output (/output/SFE_Leggett)
-    - X-Y contour plot (before and after transformation)
-        - Note that the transformation was done to make the left and right bank margins symmetric (Black dots: thalweg, Blue dots: left and right bank margins)
-            <!---![Figure 4. X-Y contour plot, before transformation]( /output/SFE_Leggett/XY_before_transformation.png)-->
-            <p align="center" width="100%">
-            <img width="60%" src="/output/SFE_Leggett/XY_before_transformation.png" alt="output1">
-            </p>
-            <!---![Figure 5. X-Y contour plot, after transformation](/output/SFE_Leggett/XY.png)-->
-            <p align="center" width="100%">
-            <img width="60%" src="/output/SFE_Leggett/XY.png" alt="output2">
-            </p>
-    - X-Y and X-Z interpolated contour plot 
-            <!---![Figure 6. X-Y and X-Z interpolated contour plot](/output/SFE_Leggett/XYZ_contours.png)-->
-            <p align="center" width="100%">
-            <img width="60%" src="/output/SFE_Leggett/XYZ_contours.png" alt="output3">
-            </p>
-    - A channel attribute table of RiverSTICH channel, including reach-average bankfull depth, bed slope, and bankfull water surface elevation slope (channel_attributes.xlsx)
-    - Interpolated contour series (SFE_Leggett_RB_metrics.xlsx)
-        - These geomorphic variability functions (GVFs) will be used for RiverBuilder channel generation.
 
-#### Example 2. X, Y, Z topographic survey to RiverSTICH (main_M1.py)
+            <!-- ![Figure 2.](/SFE_Leggett_FB_V/SFE_Leggett_FB_V/SRVlevels_xz.png) -->
+            <p align="center" width="100%">
+            <img width="80%" src="/SFE_Leggett_FB_V/SFE_Leggett_FB_V/SRVlevels_xz.png" alt="input2">
+            </p>
+   
 
-- Input (/survey/M1)
-    - Field survey data 
-        - Point shape file for topography (M1.shp)
-            <!-- ![Figure 11.](/survey/M1/M1.png) -->
-            <p align="center" width="100%">
-            <img width="80%" src="/survey/M1/M1.png" alt="input2">
-            </p>
-        - Point shape file water surface elevation for baseflow (M1_base.shp)
-            - This could be obtained from 2d hydraulic model output, through flume experiments or surveying
-            <!-- ![Figure 12.](/survey/M1/M1_base.png) -->
-            <p align="center" width="100%">
-            <img width="80%" src="/survey/M1/M1_base.png" alt="input2">
-            </p>
-- Output (/output/M1)
-    - Cross-section bed and water surface profile for width extraction
-        <!--- ![Figure 13.](/output/M1/XS/x_0.png) -->
-        <p align="center" width="100%">
-        <img width="60%" src="/output/M1/XS/x_0.png" alt="output1">
-        </p>
-    - X-Y contour plot (XY.png)
-        - Note that the transformation was not needed as the exact X, Y, Z coordinates were provided as input
-        <!--- ![Figure 14.](/output/M1/XY.png) -->
-        <p align="center" width="100%">
-        <img width="60%" src="/output/M1/XY.png" alt="output2">
-        </p>
-    - X-Y and X-Z interpolated contour plot
-        <!--- ![Figure 15.](/output/M1/XYZ_contours.png)-->
-        <p align="center" width="100%">
-        <img width="60%" src="/output/M1/XYZ_contours.png" alt="output3">
-        </p>
-    - A channel attribute table of RiverSTICH channel, including reach-average bankfull depth, bed slope, and bankfull water surface elevation slope (channel_attributes.xlsx)
-    - Interpolated contour series (M1_RB_metrics.xlsx)
-        - These geomorphic variability functions (GVFs) will be used for RiverBuilder channel generation.
         
 <!---
 <p align="center" width="100%">
